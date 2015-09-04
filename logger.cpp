@@ -24,7 +24,7 @@ namespace Logger {
             logStream.close();
         }
         isWriteToFile = isWrite;
-        const std::string logPath = Lib::dirAndFileToPath(logDir, logFile);
+        const std::string logPath = dirAndFileToPath(logDir, logFile);
         logStream = std::ofstream(logPath, std::ofstream::out | std::ofstream::app);
     }
 
@@ -35,7 +35,7 @@ namespace Logger {
 
         isWriteToFile = true;
 
-        Lib::pathToFile(logPath, logDir, logFile);
+        pathToFile(logPath, logDir, logFile);
     }
 
     void LogHandler::log(const Level& level, const std::string& msg) {
@@ -78,7 +78,7 @@ namespace Logger {
                 }
             }
         }
-        logStream.open(Lib::dirAndFileToPath(logDir, logFile), std::ofstream::out | std::ofstream::app);
+        logStream.open(dirAndFileToPath(logDir, logFile), std::ofstream::out | std::ofstream::app);
     }
 
     void LogHandler::printToConsole() const {

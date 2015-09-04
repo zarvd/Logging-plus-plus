@@ -17,4 +17,4 @@ test: logger.o test.o
 	$(CC) $(FLAG) logger.o test.o -lm -o $(TEST)
 
 clean:
-	rm *.o $(MAIN) $(TEST)
+	rm *.o $(TEST)

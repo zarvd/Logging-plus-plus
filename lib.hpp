@@ -1,10 +1,9 @@
 #ifndef LIB_H
 #define LIB_H
 
-
 #include <string>
 
-namespace Lib {
+namespace Logger {
     inline void pathToFile(const std::string& path, std::string& dir, std::string& filename) {
         std::size_t foundPos = path.find_last_of("/");
         if(foundPos != std::string::npos) {
