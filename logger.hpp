@@ -17,18 +17,18 @@
 
 namespace Logger {
     enum Level {
-        Info = 0,
-        Debug = 1,
+        Debug = 0,
+        Info = 1,
         Warn = 2,
         Error = 3
     };
 
     inline std::string getLogLevel(const Level& level) {
         switch(level) {
-        case Level::Info:
-            return "INFO";
         case Level::Debug:
             return "DEBUG";
+        case Level::Info:
+            return "INFO";
         case Level::Warn:
             return "WARN";
         case Level::Error:

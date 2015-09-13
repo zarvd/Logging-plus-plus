@@ -13,10 +13,12 @@ void threadTest(int idx) {
 
 int main(void) {
     LoggingHandler.init();
-    LoggingHandler.setLogLevel(Logger::Level::Error);
+    // LoggingHandler.setLogLevel(Logger::Level::Error);
     std::thread threads[30];
-    for (int idx = 0; idx < 30; ++ idx)
+    for (int idx = 0; idx < 30; ++ idx) {
         threads[idx] = std::thread(threadTest, idx);
+    }
+
 
     for(auto& thread : threads)
         thread.join();

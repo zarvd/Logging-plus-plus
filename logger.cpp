@@ -20,6 +20,7 @@ namespace Logger {
 
 
     void LogHandler::init() {
+        std::lock_guard<std::mutex> lck (logMtx);
         if(logStream.is_open()) {
             logStream.close();
         }
@@ -29,6 +30,7 @@ namespace Logger {
     }
 
     void LogHandler::setWriteToFile(const bool& isWrite) {
+        std::lock_guard<std::mutex> lck (logMtx);
         if(isWriteToFile && logStream.is_open()) {
             logStream.close();
         }
@@ -38,6 +40,7 @@ namespace Logger {
     }
 
     void LogHandler::setLogFile(const std::string& logPath) {
+        std::lock_guard<std::mutex> lck (logMtx);
         if(logStream.is_open()) {
             logStream.close();
         }
@@ -48,15 +51,16 @@ namespace Logger {
     }
 
     void LogHandler::setLogLevel(const Level& level) {
+        std::lock_guard<std::mutex> lck (logMtx);
         logLevel = level;
     }
 
     void LogHandler::log(const Level& level, const std::string& msg) {
+        std::lock_guard<std::mutex> lck (logMtx);
         if(level < logLevel) return;
         if(isWriteToFile && ! logStream.is_open()) {
             throw std::domain_error("log stream is not open");
         }
-        logMtx.lock();
         auto nowTime = std::chrono::system_clock::now();
         logMsg.time = std::chrono::system_clock::to_time_t(nowTime);
         logMsg.level = level;
@@ -67,7 +71,6 @@ namespace Logger {
         if(isPrintToConsole) {
             printToConsole();
         }
-        logMtx.unlock();
     }
 
     void LogHandler::openLogStream() {
