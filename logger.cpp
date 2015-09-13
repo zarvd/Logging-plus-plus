@@ -7,7 +7,7 @@ namespace Logger {
     LogHandler::LogHandler() :
         isWriteToFile(true),
         logDir(""),
-        logFile("minihttpd.log"),
+        logFile("app.log"),
         logMsg(Log()) {}
 
     void LogHandler::init() {
