@@ -5,10 +5,19 @@ namespace Logger {
     LogHandler LoggingHandler;
 
     LogHandler::LogHandler() :
+        logLevel(Level::Info),
         isWriteToFile(true),
+        isPrintToConsole(true),
         logDir(""),
         logFile("app.log"),
         logMsg(Log()) {}
+
+    LogHandler::~LogHandler() {
+        if(logStream.is_open()) {
+            logStream.close();
+        }
+    }
+
 
     void LogHandler::init() {
         if(logStream.is_open()) {
@@ -38,17 +47,26 @@ namespace Logger {
         pathToFile(logPath, logDir, logFile);
     }
 
+    void LogHandler::setLogLevel(const Level& level) {
+        logLevel = level;
+    }
+
     void LogHandler::log(const Level& level, const std::string& msg) {
-        if( ! logStream.is_open()) {
-            throw "log stream is not open";
+        if(level < logLevel) return;
+        if(isWriteToFile && ! logStream.is_open()) {
+            throw std::domain_error("log stream is not open");
         }
         logMtx.lock();
         auto nowTime = std::chrono::system_clock::now();
         logMsg.time = std::chrono::system_clock::to_time_t(nowTime);
         logMsg.level = level;
         logMsg.message = msg;
-        printToConsole();
-        writeToFile();
+        if(isWriteToFile) {
+            writeToFile();
+        }
+        if(isPrintToConsole) {
+            printToConsole();
+        }
         logMtx.unlock();
     }
 
@@ -90,7 +108,7 @@ namespace Logger {
 
     void LogHandler::writeToFile() {
         if( ! logStream.is_open()) {
-            throw "log stream is not open";
+            throw std::domain_error("log stream is not open");
         }
         logStream << getLogLevel(logMsg.level) << " -> "
                   << getTime(logMsg.time) << " >> "

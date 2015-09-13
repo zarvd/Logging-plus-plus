@@ -10,11 +10,18 @@
 #include <mutex>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <exception>
+#include <map>
 #include "lib.hpp"
 
 
 namespace Logger {
-    enum class Level {Info, Debug, Warn, Error};
+    enum Level {
+        Info = 0,
+        Debug = 1,
+        Warn = 2,
+        Error = 3
+    };
 
     inline std::string getLogLevel(const Level& level) {
         switch(level) {
@@ -44,17 +51,21 @@ namespace Logger {
     };
 
 
-    class LogHandler {
+    class LogHandler final {
     public:
         LogHandler();
+        ~LogHandler();
 
         void init();
         void setWriteToFile(const bool&);
         void setLogFile(const std::string&);
         void log(const Level&, const std::string&);
+        void setLogLevel(const Level&);
 
     private:
+        Level logLevel;
         bool isWriteToFile;
+        bool isPrintToConsole;
         std::string logDir;
         std::string logFile;
         std::ofstream logStream;
@@ -66,7 +77,7 @@ namespace Logger {
     };
 
     extern std::mutex logMtx;
-    extern LogHandler LoggingHandler;
+    extern LogHandler LoggingHandler;  // Global logging handler
 
     inline void log(Level level, const std::string& msg) {
         LoggingHandler.log(level, msg);
