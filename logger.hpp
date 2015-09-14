@@ -45,11 +45,13 @@ namespace Logger {
     }
 
     struct Log {
+        unsigned long index;
         Level level;
         std::time_t time;
         std::string message;
     };
 
+    enum class Output {FILE, CONSOLE};
 
     class LogHandler final {
     public:
@@ -57,27 +59,28 @@ namespace Logger {
         ~LogHandler();
 
         void init();
-        void setWriteToFile(const bool&);
+        void setOutput(const Output&, const bool&);
         void setLogFile(const std::string&);
         void log(const Level&, const std::string&);
         void setLogLevel(const Level&);
 
     private:
         std::mutex logMtx;
-        Level logLevel;
-        bool isWriteToFile;
-        bool isPrintToConsole;
-        std::string logDir;
-        std::string logFile;
-        std::ofstream logStream;
-        Log logMsg;
+
+        static unsigned long logCount;
+        static std::string logDir;
+        static std::string logFile;
+        static std::ofstream logStream;
+        static Level logLevel;
+        static Log logMsg;
+        static std::map<Output, bool> output;
 
         void openLogStream();
         void outputToConsole() const;
         void outputToFile();
+        std::string formatOutput() const;
     };
 
-    extern std::mutex logMtx;
     extern LogHandler LoggingHandler;  // Global logging handler
 
     inline void log(Level level, const std::string& msg) {

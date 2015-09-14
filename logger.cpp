@@ -2,15 +2,16 @@
 
 
 namespace Logger {
-    LogHandler LoggingHandler;
-
-    LogHandler::LogHandler() :
-        logLevel(Level::Info),
-        isWriteToFile(true),
-        isPrintToConsole(true),
-        logDir(""),
-        logFile("app.log"),
-        logMsg(Log()) {}
+    LogHandler::LogHandler() {}
+    unsigned long LogHandler::logCount = 0;
+    std::string LogHandler::logDir("");
+    std::string LogHandler::logFile("app.log");
+    Level LogHandler::logLevel(Level::Info);
+    std::ofstream LogHandler::logStream;
+    Log LogHandler::logMsg;
+    std::map<Output, bool> LogHandler::output = {
+        {Output::FILE, true},
+        {Output::CONSOLE, true}};
 
     LogHandler::~LogHandler() {
         if(logStream.is_open()) {
@@ -27,22 +28,30 @@ namespace Logger {
         if(logStream.is_open()) {
             logStream.close();
         }
-        if(isWriteToFile) {
+        if(output.at(Output::FILE)) {
             openLogStream();
         }
     }
 
     /**
-     * Setting whether it should write to a log file
+     * Setting output allowance
      */
-    void LogHandler::setWriteToFile(const bool& isWrite) {
+    void LogHandler::setOutput(const Output& output, const bool& isAllowed) {
         std::lock_guard<std::mutex> lck(logMtx);
-        if(isWriteToFile && logStream.is_open()) {
-            logStream.close();
+        switch(output) {
+        case Output::FILE:
+            if( ! isAllowed && logStream.is_open()) {
+                logStream.close();
+            } else if( ! this->output.at(Output::FILE) && isAllowed) {
+                const std::string logPath = dirAndFileToPath(logDir, logFile);
+                logStream = std::ofstream(logPath, std::ofstream::out | std::ofstream::app);
+            }
+            this->output.at(Output::FILE) = isAllowed;
+            break;
+        case Output::CONSOLE:
+            this->output.at(Output::CONSOLE) = isAllowed;
+            break;
         }
-        isWriteToFile = isWrite;
-        const std::string logPath = dirAndFileToPath(logDir, logFile);
-        logStream = std::ofstream(logPath, std::ofstream::out | std::ofstream::app);
     }
 
     /**
@@ -50,11 +59,12 @@ namespace Logger {
      */
     void LogHandler::setLogFile(const std::string& logPath) {
         std::lock_guard<std::mutex> lck(logMtx);
+
         if(logStream.is_open()) {
             logStream.close();
         }
 
-        isWriteToFile = true;
+        output.at(Output::FILE) = true;
 
         pathToFile(logPath, logDir, logFile);
     }
@@ -72,18 +82,20 @@ namespace Logger {
      */
     void LogHandler::log(const Level& level, const std::string& msg) {
         std::lock_guard<std::mutex> lck (logMtx);
+
         if(level < logLevel) return;
-        if(isWriteToFile && ! logStream.is_open()) {
+        if(output.at(Output::FILE) && ! logStream.is_open()) {
             throw std::domain_error("log stream is not open");
         }
         auto nowTime = std::chrono::system_clock::now();
+        logMsg.index = ++ logCount;
         logMsg.time = std::chrono::system_clock::to_time_t(nowTime);
         logMsg.level = level;
         logMsg.message = msg;
-        if(isWriteToFile) {
+        if(output.at(Output::FILE)) {
             outputToFile();
         }
-        if(isPrintToConsole) {
+        if(output.at(Output::CONSOLE)) {
             outputToConsole();
         }
     }
@@ -124,10 +136,7 @@ namespace Logger {
      * Print log to console
      */
     void LogHandler::outputToConsole() const {
-        std::cout << getLogLevel(logMsg.level) << " -> "
-                  << getTime(logMsg.time) << " >> "
-                  << logMsg.message
-                  << std::endl;  // FIXME use '\n' is faster but not flush
+        std::cout << formatOutput() << std::flush;
     }
 
     /**
@@ -137,9 +146,20 @@ namespace Logger {
         if( ! logStream.is_open()) {
             throw std::domain_error("log stream is not open");
         }
-        logStream << getLogLevel(logMsg.level) << " -> "
-                  << getTime(logMsg.time) << " >> "
-                  << logMsg.message
-                  << std::endl;
+        logStream << formatOutput() << std::flush;
     }
+
+    /**
+     * get formatted output log
+     */
+    std::string LogHandler::formatOutput() const {
+        std::string buffer = "[" + std::to_string(logMsg.index) + "] "
+            + getLogLevel(logMsg.level) + " -> "
+            + getTime(logMsg.time) + " >> "
+            + logMsg.message
+            + '\n';
+        return buffer;
+    }
+
+    LogHandler LoggingHandler;  // Global logging handler
 }
