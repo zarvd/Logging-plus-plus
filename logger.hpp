@@ -63,6 +63,7 @@ namespace Logger {
         void setLogLevel(const Level&);
 
     private:
+        std::mutex logMtx;
         Level logLevel;
         bool isWriteToFile;
         bool isPrintToConsole;
@@ -72,8 +73,8 @@ namespace Logger {
         Log logMsg;
 
         void openLogStream();
-        void printToConsole() const;
-        void writeToFile();
+        void outputToConsole() const;
+        void outputToFile();
     };
 
     extern std::mutex logMtx;

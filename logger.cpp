@@ -1,7 +1,7 @@
 #include "logger.hpp"
 
+
 namespace Logger {
-    std::mutex logMtx;
     LogHandler LoggingHandler;
 
     LogHandler::LogHandler() :
@@ -18,9 +18,12 @@ namespace Logger {
         }
     }
 
-
+    /**
+     * Before using a logger, you need to initialize it.
+     * it will open a file Stream if it is allowed to write to a log file
+     */
     void LogHandler::init() {
-        std::lock_guard<std::mutex> lck (logMtx);
+        std::lock_guard<std::mutex> lck(logMtx);
         if(logStream.is_open()) {
             logStream.close();
         }
@@ -29,8 +32,11 @@ namespace Logger {
         }
     }
 
+    /**
+     * Setting whether it should write to a log file
+     */
     void LogHandler::setWriteToFile(const bool& isWrite) {
-        std::lock_guard<std::mutex> lck (logMtx);
+        std::lock_guard<std::mutex> lck(logMtx);
         if(isWriteToFile && logStream.is_open()) {
             logStream.close();
         }
@@ -39,8 +45,11 @@ namespace Logger {
         logStream = std::ofstream(logPath, std::ofstream::out | std::ofstream::app);
     }
 
+    /**
+     * Setting log file and path, and it will set isWriteToFile to true
+     */
     void LogHandler::setLogFile(const std::string& logPath) {
-        std::lock_guard<std::mutex> lck (logMtx);
+        std::lock_guard<std::mutex> lck(logMtx);
         if(logStream.is_open()) {
             logStream.close();
         }
@@ -50,11 +59,17 @@ namespace Logger {
         pathToFile(logPath, logDir, logFile);
     }
 
+    /**
+     * Setting log level
+     */
     void LogHandler::setLogLevel(const Level& level) {
-        std::lock_guard<std::mutex> lck (logMtx);
+        std::lock_guard<std::mutex> lck(logMtx);
         logLevel = level;
     }
 
+    /**
+     * Log operation
+     */
     void LogHandler::log(const Level& level, const std::string& msg) {
         std::lock_guard<std::mutex> lck (logMtx);
         if(level < logLevel) return;
@@ -66,13 +81,16 @@ namespace Logger {
         logMsg.level = level;
         logMsg.message = msg;
         if(isWriteToFile) {
-            writeToFile();
+            outputToFile();
         }
         if(isPrintToConsole) {
-            printToConsole();
+            outputToConsole();
         }
     }
 
+    /**
+     * Open a file stream
+     */
     void LogHandler::openLogStream() {
         if(logStream.is_open()) {
             logStream.close();
@@ -102,14 +120,20 @@ namespace Logger {
         logStream.open(dirAndFileToPath(logDir, logFile), std::ofstream::out | std::ofstream::app);
     }
 
-    void LogHandler::printToConsole() const {
+    /**
+     * Print log to console
+     */
+    void LogHandler::outputToConsole() const {
         std::cout << getLogLevel(logMsg.level) << " -> "
                   << getTime(logMsg.time) << " >> "
                   << logMsg.message
-                  << std::endl;
+                  << std::endl;  // FIXME use '\n' is faster but not flush
     }
 
-    void LogHandler::writeToFile() {
+    /**
+     * Print log to log file
+     */
+    void LogHandler::outputToFile() {
         if( ! logStream.is_open()) {
             throw std::domain_error("log stream is not open");
         }
