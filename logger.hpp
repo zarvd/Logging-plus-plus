@@ -67,13 +67,13 @@ namespace Logger {
     private:
         std::mutex logMtx;
 
-        static unsigned long logCount;
-        static std::string logDir;
-        static std::string logFile;
-        static std::ofstream logStream;
-        static Level logLevel;
-        static Log logMsg;
-        static std::map<Output, bool> output;
+        unsigned long logCount;
+        std::string logDir;
+        std::string logFile;
+        std::ofstream logStream;
+        Level logLevel;
+        Log logMsg;
+        std::map<Output, bool> output;
 
         void openLogStream();
         void outputToConsole() const;
@@ -83,24 +83,35 @@ namespace Logger {
 
     extern LogHandler LoggingHandler;  // Global logging handler
 
-    inline void log(Level level, const std::string& msg) {
-        LoggingHandler.log(level, msg);
-    }
-
     inline void logInfo(const std::string& msg) {
-        log(Level::Info, msg);
+        LoggingHandler.log(Level::Info, msg);
     }
 
     inline void logDebug(const std::string& msg) {
-        log(Level::Debug, msg);
+        LoggingHandler.log(Level::Debug, msg);
     }
 
     inline void logWarn(const std::string& msg) {
-        log(Level::Warn, msg);
+        LoggingHandler.log(Level::Warn, msg);
     }
 
     inline void logError(const std::string& msg) {
-        log(Level::Error, msg);
+        LoggingHandler.log(Level::Error, msg);
+    }
+
+    typedef void (*logFunc)(const std::string&);
+
+    inline logFunc log(const Level& level) {
+        switch(level) {
+        case Level::Debug:
+            return &logDebug;
+        case Level::Info:
+            return &logInfo;
+        case Level::Warn:
+            return &logWarn;
+        case Level::Error:
+            return &logError;
+        }
     }
 }
 

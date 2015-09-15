@@ -2,16 +2,14 @@
 
 
 namespace Logger {
-    LogHandler::LogHandler() {}
-    unsigned long LogHandler::logCount = 0;
-    std::string LogHandler::logDir("");
-    std::string LogHandler::logFile("app.log");
-    Level LogHandler::logLevel(Level::Info);
-    std::ofstream LogHandler::logStream;
-    Log LogHandler::logMsg;
-    std::map<Output, bool> LogHandler::output = {
-        {Output::FILE, true},
-        {Output::CONSOLE, true}};
+    LogHandler::LogHandler() :
+        logCount(0),
+        logDir(""),
+        logFile("app.log"),
+        logLevel(Level::Info),
+        logMsg(), output({
+                {Output::FILE, true},
+                {Output::CONSOLE, true}}) {}
 
     LogHandler::~LogHandler() {
         if(logStream.is_open()) {

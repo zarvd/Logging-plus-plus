@@ -1,14 +1,15 @@
 #include "logger.hpp"
 
 using Logger::LoggingHandler;
-using Logger::logInfo;
-using Logger::logDebug;
-using Logger::logWarn;
-using Logger::logError;
+using logLevel = Logger::Level;
 
+
+void log() {
+}
 
 void threadTest(int idx) {
-    logInfo("Thread: " + std::to_string(idx));
+    // logInfo();
+    log(logLevel::Info)("Thread: " + std::to_string(idx));
 }
 
 int main(void) {
