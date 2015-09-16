@@ -3,18 +3,18 @@
 
 namespace Logger {
     LogHandler::LogHandler() :
+        MaxBufferSize(5),
         logCount(0),
         logDir(""),
         logFile("app.log"),
         logLevel(Level::Info),
-        logMsg(), output({
-                {Output::FILE, true},
+        logReadBuffer(),
+        logWriteBuffer(),
+        output({{Output::FILE, true},
                 {Output::CONSOLE, true}}) {}
 
     LogHandler::~LogHandler() {
-        if(logStream.is_open()) {
-            logStream.close();
-        }
+        stop();
     }
 
     /**
@@ -23,12 +23,20 @@ namespace Logger {
      */
     void LogHandler::init() {
         std::lock_guard<std::mutex> lck(logMtx);
+        outputThread = std::thread(&LogHandler::outputEngine, this);
         if(logStream.is_open()) {
             logStream.close();
         }
         if(output.at(Output::FILE)) {
             openLogStream();
         }
+    }
+
+    void LogHandler::stop() {
+        if(logStream.is_open()) {
+            logStream.close();
+        }
+        outputThread.join();
     }
 
     /**
@@ -79,22 +87,22 @@ namespace Logger {
      * Log operation
      */
     void LogHandler::log(const Level& level, const std::string& msg) {
-        std::lock_guard<std::mutex> lck (logMtx);
+        std::unique_lock<std::mutex> lck(logMtx);
 
         if(level < logLevel) return;
         if(output.at(Output::FILE) && ! logStream.is_open()) {
-            throw std::domain_error("log stream is not open");
+            throw std::domain_error("LogHandler::log(): log stream is not open");
         }
         auto nowTime = std::chrono::system_clock::now();
-        logMsg.index = ++ logCount;
-        logMsg.time = std::chrono::system_clock::to_time_t(nowTime);
-        logMsg.level = level;
-        logMsg.message = msg;
-        if(output.at(Output::FILE)) {
-            outputToFile();
-        }
-        if(output.at(Output::CONSOLE)) {
-            outputToConsole();
+        std::shared_ptr<Log> logMsg(new Log);
+        logMsg->index = ++ logCount;
+        logMsg->time = std::chrono::system_clock::to_time_t(nowTime);
+        logMsg->level = level;
+        logMsg->message = msg;
+        logReadBuffer.push(logMsg);
+        if(logReadBuffer.size() >= MaxBufferSize) {
+            std::swap(logReadBuffer, logWriteBuffer);
+            cv.notify_one();
         }
     }
 
@@ -130,31 +138,51 @@ namespace Logger {
         logStream.open(dirAndFileToPath(logDir, logFile), std::ofstream::out | std::ofstream::app);
     }
 
+    void LogHandler::outputEngine() {
+        // std::lock_guard<std::mutex> lck (logMtx);
+        while(true) {
+            std::unique_lock<std::mutex> lck(logMtx);
+            while(logWriteBuffer.empty()) {
+                cv.wait(lck);
+            }
+            while( ! logWriteBuffer.empty()) {
+                std::shared_ptr<Log> logMsg = logWriteBuffer.front();
+                if(output.at(Output::FILE)) {
+                    outputToFile(logMsg);
+                }
+                if(output.at(Output::CONSOLE)) {
+                    outputToConsole(logMsg);
+                }
+                logWriteBuffer.pop();
+            }
+        }
+    }
+
     /**
      * Print log to console
      */
-    void LogHandler::outputToConsole() const {
-        std::cout << formatOutput() << std::flush;
+    void LogHandler::outputToConsole(std::shared_ptr<Log> logMsg) const {
+        std::cout << formatOutput(logMsg) << std::flush;
     }
 
     /**
      * Print log to log file
      */
-    void LogHandler::outputToFile() {
+    void LogHandler::outputToFile(std::shared_ptr<Log> logMsg) {
         if( ! logStream.is_open()) {
-            throw std::domain_error("log stream is not open");
+            throw std::domain_error("LogHandler::outputToFile: log stream is not open");
         }
-        logStream << formatOutput() << std::flush;
+        logStream << formatOutput(logMsg) << std::flush;
     }
 
     /**
      * get formatted output log
      */
-    std::string LogHandler::formatOutput() const {
-        std::string buffer = "[" + std::to_string(logMsg.index) + "] "
-            + getLogLevel(logMsg.level) + " -> "
-            + getTime(logMsg.time) + " >> "
-            + logMsg.message
+    std::string LogHandler::formatOutput(std::shared_ptr<Log> logMsg) const {
+        std::string buffer = "[" + std::to_string(logMsg->index) + "] "
+            + getLogLevel(logMsg->level) + " -> "
+            + getTime(logMsg->time) + " >> "
+            + logMsg->message
             + '\n';
         return buffer;
     }

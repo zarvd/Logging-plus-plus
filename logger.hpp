@@ -8,10 +8,12 @@
 #include <chrono>
 #include <thread>
 #include <mutex>
+#include <condition_variable>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <exception>
 #include <map>
+#include <queue>
 #include "lib.hpp"
 
 
@@ -59,6 +61,7 @@ namespace Logger {
         ~LogHandler();
 
         void init();
+        void stop();
         void setOutput(const Output&, const bool&);
         void setLogFile(const std::string&);
         void log(const Level&, const std::string&);
@@ -66,19 +69,24 @@ namespace Logger {
 
     private:
         std::mutex logMtx;
+        std::condition_variable cv;
 
+        unsigned MaxBufferSize;
         unsigned long logCount;
         std::string logDir;
         std::string logFile;
         std::ofstream logStream;
         Level logLevel;
-        Log logMsg;
+        std::queue<std::shared_ptr<Log> > logReadBuffer;
+        std::queue<std::shared_ptr<Log> > logWriteBuffer;
         std::map<Output, bool> output;
+        std::thread outputThread;
 
+        void outputEngine();
         void openLogStream();
-        void outputToConsole() const;
-        void outputToFile();
-        std::string formatOutput() const;
+        void outputToConsole(std::shared_ptr<Log>) const;
+        void outputToFile(std::shared_ptr<Log>);
+        std::string formatOutput(std::shared_ptr<Log>) const;
     };
 
     extern LogHandler LoggingHandler;  // Global logging handler
