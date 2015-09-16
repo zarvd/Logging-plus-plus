@@ -69,18 +69,23 @@ namespace Logger {
 
     private:
         std::mutex logMtx;
-        std::condition_variable cv;
+        std::condition_variable logCV;
+        std::thread outputThread;
+        bool isStop;
 
         unsigned MaxBufferSize;
-        unsigned long logCount;
+        std::chrono::seconds flushFrequency;
         std::string logDir;
         std::string logFile;
         std::ofstream logStream;
+
+        unsigned long logCount;
         Level logLevel;
+
         std::queue<std::shared_ptr<Log> > logReadBuffer;
         std::queue<std::shared_ptr<Log> > logWriteBuffer;
+
         std::map<Output, bool> output;
-        std::thread outputThread;
 
         void outputEngine();
         void openLogStream();

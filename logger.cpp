@@ -3,10 +3,12 @@
 
 namespace Logger {
     LogHandler::LogHandler() :
+        isStop(true),
         MaxBufferSize(5),
-        logCount(0),
+        flushFrequency(3),
         logDir(""),
         logFile("app.log"),
+        logCount(0),
         logLevel(Level::Info),
         logReadBuffer(),
         logWriteBuffer(),
@@ -14,7 +16,7 @@ namespace Logger {
                 {Output::CONSOLE, true}}) {}
 
     LogHandler::~LogHandler() {
-        stop();
+        if( ! isStop) stop();
     }
 
     /**
@@ -23,6 +25,10 @@ namespace Logger {
      */
     void LogHandler::init() {
         std::lock_guard<std::mutex> lck(logMtx);
+        if( ! isStop) {
+            throw std::logic_error("Logging handler had inited");
+        }
+        isStop = false;
         outputThread = std::thread(&LogHandler::outputEngine, this);
         if(logStream.is_open()) {
             logStream.close();
@@ -33,9 +39,13 @@ namespace Logger {
     }
 
     void LogHandler::stop() {
+        if(isStop) {
+            throw std::logic_error("Logging handler had stopped");
+        }
         if(logStream.is_open()) {
             logStream.close();
         }
+        isStop = true;
         outputThread.join();
     }
 
@@ -89,6 +99,9 @@ namespace Logger {
     void LogHandler::log(const Level& level, const std::string& msg) {
         std::unique_lock<std::mutex> lck(logMtx);
 
+        if(isStop) {
+            throw std::logic_error("logging handler haven't inited");
+        }
         if(level < logLevel) return;
         if(output.at(Output::FILE) && ! logStream.is_open()) {
             throw std::domain_error("LogHandler::log(): log stream is not open");
@@ -101,8 +114,8 @@ namespace Logger {
         logMsg->message = msg;
         logReadBuffer.push(logMsg);
         if(logReadBuffer.size() >= MaxBufferSize) {
-            std::swap(logReadBuffer, logWriteBuffer);
-            cv.notify_one();
+            logReadBuffer.swap(logWriteBuffer);
+            logCV.notify_one();
         }
     }
 
@@ -124,13 +137,13 @@ namespace Logger {
                     dir = this->logDir.substr(0, idx);  // get new directory path
                     struct stat fileStat;
                     if(stat(dir.c_str(), &fileStat) < 0) {
-                        throw "File doesn't exist";
+                        throw std::runtime_error("File doesn't exist");
                     }
                     if( ! S_ISDIR(fileStat.st_mode)) {
-                        throw "Directory error";
+                        throw std::runtime_error("Directory error");
                     }
                     if(mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) < 0) {
-                        throw "Cannot create directory";
+                        throw std::runtime_error("Cannot create directory");
                     }
                 }
             }
@@ -139,11 +152,12 @@ namespace Logger {
     }
 
     void LogHandler::outputEngine() {
-        // std::lock_guard<std::mutex> lck (logMtx);
-        while(true) {
-            std::unique_lock<std::mutex> lck(logMtx);
+        while( ! isStop) {
+            std::unique_lock<std::mutex> logLck(logMtx);
             while(logWriteBuffer.empty()) {
-                cv.wait(lck);
+                logCV.wait_for(logLck, flushFrequency);
+                logWriteBuffer.swap(logReadBuffer);
+                if(isStop) exit(0);
             }
             while( ! logWriteBuffer.empty()) {
                 std::shared_ptr<Log> logMsg = logWriteBuffer.front();

@@ -31,7 +31,6 @@ void countRunTime(const std::string& testName, testFunc func) {
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
     {
-        LoggingHandler.init();
         func();
     }
     end = std::chrono::system_clock::now();
@@ -44,7 +43,8 @@ void countRunTime(const std::string& testName, testFunc func) {
 }
 
 int main(void) {
-    countRunTime("multi", &multiThreadTest);
-    // countRunTime("single", &singleThreadTest);
+    LoggingHandler.init();
+    // countRunTime("multi", &multiThreadTest);
+    countRunTime("single", &singleThreadTest);
     return 0;
 }
