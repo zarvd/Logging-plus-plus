@@ -42,11 +42,11 @@ namespace Logger {
         if(isStop) {
             throw std::logic_error("Logging handler had stopped");
         }
+        isStop = true;
+        outputThread.join();
         if(logStream.is_open()) {
             logStream.close();
         }
-        isStop = true;
-        outputThread.join();
     }
 
     /**
@@ -114,7 +114,6 @@ namespace Logger {
         logMsg->message = msg;
         logReadBuffer.push(logMsg);
         if(logReadBuffer.size() >= MaxBufferSize) {
-            logReadBuffer.swap(logWriteBuffer);
             logCV.notify_one();
         }
     }
@@ -157,15 +156,15 @@ namespace Logger {
             while(logWriteBuffer.empty()) {
                 logCV.wait_for(logLck, flushFrequency);
                 logWriteBuffer.swap(logReadBuffer);
-                if(isStop) exit(0);
+                if(isStop && logWriteBuffer.empty()) exit(0);
             }
             while( ! logWriteBuffer.empty()) {
                 std::shared_ptr<Log> logMsg = logWriteBuffer.front();
-                if(output.at(Output::FILE)) {
-                    outputToFile(logMsg);
-                }
                 if(output.at(Output::CONSOLE)) {
                     outputToConsole(logMsg);
+                }
+                if(output.at(Output::FILE)) {
+                    outputToFile(logMsg);
                 }
                 logWriteBuffer.pop();
             }

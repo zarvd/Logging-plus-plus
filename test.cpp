@@ -1,6 +1,10 @@
 #include "logger.hpp"
 
 using Logger::LoggingHandler;
+using Logger::logInfo;
+using Logger::logDebug;
+using Logger::logWarn;
+using Logger::logError;
 using logLevel = Logger::Level;
 
 typedef void (*testFunc)();
@@ -27,6 +31,13 @@ void singleThreadTest() {
     }
 }
 
+void whiteBox() {
+    for(unsigned idx = 0; idx < 11; ++ idx) {
+        log(logLevel::Warn)("Warning Test");
+        log(logLevel::Error)("Test" + std::to_string(idx));
+    }
+}
+
 void countRunTime(const std::string& testName, testFunc func) {
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
@@ -44,7 +55,10 @@ void countRunTime(const std::string& testName, testFunc func) {
 
 int main(void) {
     LoggingHandler.init();
-    // countRunTime("multi", &multiThreadTest);
-    countRunTime("single", &singleThreadTest);
+    countRunTime("multi", &multiThreadTest);
+    // countRunTime("single", &singleThreadTest);
+    // countRunTime("whiteBox", &whiteBox);
+    // logInfo("test");
+    // whiteBox();
     return 0;
 }
