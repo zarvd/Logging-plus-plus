@@ -98,6 +98,14 @@ namespace Logger {
      * Log operation
      */
     void LogHandler::log(const Level& level, const std::string& msg) {
+        // create log message before lock mutex which may block
+        std::shared_ptr<Log> logMsg(new Log);
+        logMsg->index = ++ logCount;
+        logMsg->time = currentTime;
+        logMsg->level = level;
+        logMsg->message = msg;
+
+        // it may block
         std::unique_lock<std::mutex> lck(logMtx);
 
         if(isStop) {
@@ -108,12 +116,6 @@ namespace Logger {
             throw std::domain_error("LogHandler::log(): log stream is not open");
         }
 
-        // create log message
-        std::shared_ptr<Log> logMsg(new Log);
-        logMsg->index = ++ logCount;
-        logMsg->time = currentTime;
-        logMsg->level = level;
-        logMsg->message = msg;
         logReadBuffer.push(logMsg);
 
         // notify output thread to output
@@ -215,17 +217,11 @@ namespace Logger {
     std::string LogHandler::formatOutput(std::shared_ptr<Log> logMsg) const {
         char buffer[MaxMsgSize];
         snprintf(buffer, MaxMsgSize, "[%lu] %s -> %s >> %s\n",
-                logMsg->index,
-                getLogLevel(logMsg->level).c_str(),
-                logMsg->time.c_str(),
-                logMsg->message.c_str());
+                 logMsg->index,
+                 getLogLevel(logMsg->level).c_str(),
+                 logMsg->time.c_str(),
+                 logMsg->message.c_str());
         return buffer;
-        // std::string buffer = "[" + std::to_string(logMsg->index) + "] "
-        //     + getLogLevel(logMsg->level) + " -> "
-        //     + logMsg->time + " >> "
-        //     + logMsg->message
-        //     + '\n';
-        // return buffer;
     }
 
     LogHandler LoggingHandler;  // Global logging handler
