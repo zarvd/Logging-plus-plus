@@ -55,6 +55,7 @@ namespace Logger {
         Level level;
         std::string time;
         std::string message;
+        std::string logMsg;  // NOTE
     };
 
     enum class Output {FILE, CONSOLE};

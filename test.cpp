@@ -64,8 +64,8 @@ void testCreateLog() {
 int main(void) {
     LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
     LoggingHandler.init();
-    countRunTime("multi", &multiThreadTest);
-    // countRunTime("single", &singleThreadTest);
+    // countRunTime("multi", &multiThreadTest);
+    countRunTime("single", &singleThreadTest);
     // countRunTime("whiteBox", &whiteBox);
     // logInfo("test");
     // whiteBox();

@@ -100,10 +100,11 @@ namespace Logger {
     void LogHandler::log(const Level& level, const std::string& msg) {
         // create log message before lock mutex which may block
         std::shared_ptr<Log> logMsg(new Log);
-        logMsg->index = ++ logCount;
+        logMsg->index = ++ logCount;  // FIXME
         logMsg->time = currentTime;
         logMsg->level = level;
         logMsg->message = msg;
+        logMsg->logMsg = formatOutput(logMsg);  // NOTE
 
         // it may block
         std::unique_lock<std::mutex> lck(logMtx);
@@ -179,7 +180,8 @@ namespace Logger {
 
             while( ! logWriteBuffer.empty()) {
                 std::shared_ptr<Log> logMsg = logWriteBuffer.front();
-                std::string outputMsg = formatOutput(logMsg);
+                // std::string outputMsg = formatOutput(logMsg);
+                std::string outputMsg = logMsg->logMsg;
                 if(output.at(Output::CONSOLE)) {
                     outputToConsole(outputMsg);
                 }
