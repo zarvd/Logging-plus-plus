@@ -10,11 +10,13 @@ using logLevel = Logger::Level;
 typedef void (*testFunc)();
 
 void mulitThread(unsigned idx) {
-    log(logLevel::Info)("Thread: " + std::to_string(idx));
+    for(unsigned i = 1; i < 2000; ++ i) {
+        log(logLevel::Info)("Thread: " + std::to_string(idx));
+    }
 }
 
 void multiThreadTest() {
-    const unsigned threadCount = 1000;
+    const unsigned threadCount = 500;
     std::thread threads[threadCount];
     for(unsigned idx = 0; idx < threadCount; ++ idx) {
         threads[idx] = std::thread(mulitThread, idx);
@@ -27,7 +29,7 @@ void multiThreadTest() {
 void singleThreadTest() {
     const unsigned long msgCount = 1000000;
     for(unsigned idx = 0; idx < msgCount; ++ idx) {
-        log(logLevel::Info)("Log: " + std::to_string(idx));
+        log(logLevel::Info)("Log test");
     }
 }
 
@@ -60,10 +62,10 @@ void testCreateLog() {
 }
 
 int main(void) {
-    // LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
-    // LoggingHandler.init();
+    LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
+    LoggingHandler.init();
     // countRunTime("multi", &multiThreadTest);
-    // countRunTime("single", &singleThreadTest);
+    countRunTime("single", &singleThreadTest);
     // countRunTime("whiteBox", &whiteBox);
     // logInfo("test");
     // whiteBox();

@@ -46,10 +46,14 @@ namespace Logger {
         return time;
     }
 
+    inline std::string getCurrentTime() {
+        return getTime(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+    }
+
     struct Log {
         unsigned long index;
         Level level;
-        std::time_t time;
+        std::string time;
         std::string message;
     };
 
@@ -78,6 +82,7 @@ namespace Logger {
         std::string logDir;
         std::string logFile;
         std::ofstream logStream;
+        std::string currentTime;
 
         unsigned long logCount;
         Level logLevel;
@@ -89,8 +94,8 @@ namespace Logger {
 
         void outputEngine();
         void openLogStream();
-        void outputToConsole(std::shared_ptr<Log>) const;
-        void outputToFile(std::shared_ptr<Log>);
+        void outputToConsole(const std::string&) const;
+        void outputToFile(const std::string&);
         std::string formatOutput(std::shared_ptr<Log>) const;
     };
 

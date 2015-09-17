@@ -106,13 +106,16 @@ namespace Logger {
         if(output.at(Output::FILE) && ! logStream.is_open()) {
             throw std::domain_error("LogHandler::log(): log stream is not open");
         }
-        auto nowTime = std::chrono::system_clock::now();
+
+        // create log message
         std::shared_ptr<Log> logMsg(new Log);
         logMsg->index = ++ logCount;
-        logMsg->time = std::chrono::system_clock::to_time_t(nowTime);
+        logMsg->time = currentTime;
         logMsg->level = level;
         logMsg->message = msg;
         logReadBuffer.push(logMsg);
+
+        // notify output thread to output
         if(logReadBuffer.size() >= MaxBufferSize) {
             logCV.notify_one();
         }
@@ -156,6 +159,9 @@ namespace Logger {
         logStream.open(dirAndFileToPath(logDir, logFile), std::ofstream::out | std::ofstream::app);
     }
 
+    /**
+     * Another thread for output to file
+     */
     void LogHandler::outputEngine() {
         while( ! isStop) {
             std::unique_lock<std::mutex> logLck(logMtx);
@@ -164,13 +170,18 @@ namespace Logger {
                 logWriteBuffer.swap(logReadBuffer);
                 if(isStop && logWriteBuffer.empty()) exit(0);
             }
+
+            // fresh time
+            currentTime = getCurrentTime();
+
             while( ! logWriteBuffer.empty()) {
                 std::shared_ptr<Log> logMsg = logWriteBuffer.front();
+                std::string outputMsg = formatOutput(logMsg);
                 if(output.at(Output::CONSOLE)) {
-                    outputToConsole(logMsg);
+                    outputToConsole(outputMsg);
                 }
                 if(output.at(Output::FILE)) {
-                    outputToFile(logMsg);
+                    outputToFile(outputMsg);
                 }
                 logWriteBuffer.pop();
             }
@@ -183,18 +194,18 @@ namespace Logger {
     /**
      * Print log to console
      */
-    void LogHandler::outputToConsole(std::shared_ptr<Log> logMsg) const {
-        std::cout << formatOutput(logMsg) << std::flush;
+    void LogHandler::outputToConsole(const std::string& logMsg) const {
+        std::cout << logMsg;
     }
 
     /**
      * Print log to log file
      */
-    void LogHandler::outputToFile(std::shared_ptr<Log> logMsg) {
+    void LogHandler::outputToFile(const std::string& logMsg) {
         if( ! logStream.is_open()) {
             throw std::domain_error("LogHandler::outputToFile: log stream is not open");
         }
-        logStream << formatOutput(logMsg);
+        logStream << logMsg;
     }
 
     /**
@@ -203,7 +214,7 @@ namespace Logger {
     std::string LogHandler::formatOutput(std::shared_ptr<Log> logMsg) const {
         std::string buffer = "[" + std::to_string(logMsg->index) + "] "
             + getLogLevel(logMsg->level) + " -> "
-            + getTime(logMsg->time) + " >> "
+            + logMsg->time + " >> "
             + logMsg->message
             + '\n';
         return buffer;
