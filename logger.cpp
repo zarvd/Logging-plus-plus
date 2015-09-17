@@ -4,7 +4,8 @@
 namespace Logger {
     LogHandler::LogHandler() :
         isStop(true),
-        MaxBufferSize(50),
+        MaxMsgSize(200),
+        maxBufferSize(50),
         flushFrequency(3),
         logDir(""),
         logFile("app.log"),
@@ -116,7 +117,7 @@ namespace Logger {
         logReadBuffer.push(logMsg);
 
         // notify output thread to output
-        if(logReadBuffer.size() >= MaxBufferSize) {
+        if(logReadBuffer.size() >= maxBufferSize) {
             logCV.notify_one();
         }
     }
@@ -212,12 +213,19 @@ namespace Logger {
      * get formatted output log
      */
     std::string LogHandler::formatOutput(std::shared_ptr<Log> logMsg) const {
-        std::string buffer = "[" + std::to_string(logMsg->index) + "] "
-            + getLogLevel(logMsg->level) + " -> "
-            + logMsg->time + " >> "
-            + logMsg->message
-            + '\n';
+        char buffer[MaxMsgSize];
+        snprintf(buffer, MaxMsgSize, "[%lu] %s -> %s >> %s\n",
+                logMsg->index,
+                getLogLevel(logMsg->level).c_str(),
+                logMsg->time.c_str(),
+                logMsg->message.c_str());
         return buffer;
+        // std::string buffer = "[" + std::to_string(logMsg->index) + "] "
+        //     + getLogLevel(logMsg->level) + " -> "
+        //     + logMsg->time + " >> "
+        //     + logMsg->message
+        //     + '\n';
+        // return buffer;
     }
 
     LogHandler LoggingHandler;  // Global logging handler

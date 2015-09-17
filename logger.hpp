@@ -77,7 +77,8 @@ namespace Logger {
         std::thread outputThread;
         bool isStop;
 
-        unsigned MaxBufferSize;
+        const unsigned MaxMsgSize;  // FIXME unkown buffer size
+        unsigned maxBufferSize;
         std::chrono::seconds flushFrequency;
         std::string logDir;
         std::string logFile;
