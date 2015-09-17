@@ -1,5 +1,5 @@
 CC=clang++
-FLAG=-Wall -std=c++11 -g -O0 -pthread
+FLAG=-Wall -std=c++11 -g -O2 -pthread
 MAIN=main
 TEST=test
 

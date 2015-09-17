@@ -25,9 +25,9 @@ void multiThreadTest() {
 }
 
 void singleThreadTest() {
-    const unsigned msgCount = 1000;
+    const unsigned long msgCount = 1000000;
     for(unsigned idx = 0; idx < msgCount; ++ idx) {
-        log(logLevel::Info)("Thread: " + std::to_string(idx));
+        log(logLevel::Info)("Log: " + std::to_string(idx));
     }
 }
 
@@ -45,7 +45,7 @@ void countRunTime(const std::string& testName, testFunc func) {
         func();
     }
     end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::chrono::duration<double> elapsed_seconds = end - start;
 
     std::cout << testName
               << " Run Time: "
@@ -54,9 +54,10 @@ void countRunTime(const std::string& testName, testFunc func) {
 }
 
 int main(void) {
+    LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
     LoggingHandler.init();
-    countRunTime("multi", &multiThreadTest);
-    // countRunTime("single", &singleThreadTest);
+    // countRunTime("multi", &multiThreadTest);
+    countRunTime("single", &singleThreadTest);
     // countRunTime("whiteBox", &whiteBox);
     // logInfo("test");
     // whiteBox();

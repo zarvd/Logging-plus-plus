@@ -4,7 +4,7 @@
 namespace Logger {
     LogHandler::LogHandler() :
         isStop(true),
-        MaxBufferSize(5),
+        MaxBufferSize(50),
         flushFrequency(3),
         logDir(""),
         logFile("app.log"),
@@ -168,6 +168,9 @@ namespace Logger {
                 }
                 logWriteBuffer.pop();
             }
+            if(output.at(Output::FILE)) {
+                logStream << std::flush;
+            }
         }
     }
 
@@ -185,7 +188,7 @@ namespace Logger {
         if( ! logStream.is_open()) {
             throw std::domain_error("LogHandler::outputToFile: log stream is not open");
         }
-        logStream << formatOutput(logMsg) << std::flush;
+        logStream << formatOutput(logMsg);
     }
 
     /**
