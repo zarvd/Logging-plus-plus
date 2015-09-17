@@ -127,24 +127,30 @@ namespace Logger {
         }
 
         // test log directory and create directory if neccesary
-        if(access(logDir.c_str(), F_OK) != 0 || access(logDir.c_str(), W_OK) == 0) {
-            std::string dir("");
-            for(unsigned short idx = 0; idx < this->logDir.length(); ++ idx) {
+        if(access(logDir.c_str(), F_OK) != 0 || access(logDir.c_str(), W_OK) != 0) {
+            std::string dir;
+            for(unsigned short idx = 0; idx < logDir.length(); ++ idx) {
                 // create new directory recusively
-                const char& curChar = this->logDir[idx];
-                if(curChar == '/' || idx + 1 == this->logDir.length()) {
-                    dir = this->logDir.substr(0, idx);  // get new directory path
-                    struct stat fileStat;
-                    if(stat(dir.c_str(), &fileStat) < 0) {
-                        throw std::runtime_error("File doesn't exist");
-                    }
-                    if( ! S_ISDIR(fileStat.st_mode)) {
-                        throw std::runtime_error("Directory error");
-                    }
+                const char& curChar = logDir[idx];
+
+                // get current directory
+                if(curChar == '/') {
+                    dir = logDir.substr(0, idx);  // get new directory path
+                } else if(idx + 1 == logDir.length()) {
+                    dir = logDir;
+                } else continue;
+
+                struct stat fileStat;
+                if(stat(dir.c_str(), &fileStat) < 0) {
                     if(mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) < 0) {
+                        std::cout << dir << std::endl;
                         throw std::runtime_error("Cannot create directory");
                     }
                 }
+                if( ! S_ISDIR(fileStat.st_mode)) {
+                    throw std::runtime_error("Directory error");
+                }
+
             }
         }
         logStream.open(dirAndFileToPath(logDir, logFile), std::ofstream::out | std::ofstream::app);

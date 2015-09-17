@@ -53,11 +53,17 @@ void countRunTime(const std::string& testName, testFunc func) {
               << std::endl;
 }
 
-int main(void) {
-    LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
+void testCreateLog() {
+    LoggingHandler.setLogFile("./log/log/log.log");
     LoggingHandler.init();
+    log(logLevel::Info)("log");
+}
+
+int main(void) {
+    // LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
+    // LoggingHandler.init();
     // countRunTime("multi", &multiThreadTest);
-    countRunTime("single", &singleThreadTest);
+    // countRunTime("single", &singleThreadTest);
     // countRunTime("whiteBox", &whiteBox);
     // logInfo("test");
     // whiteBox();
