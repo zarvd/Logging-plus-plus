@@ -64,7 +64,6 @@ namespace Logger {
 
     class LogHandler final {
     public:
-        LogHandler();
         ~LogHandler();
 
         void init();
@@ -73,13 +72,24 @@ namespace Logger {
         void setLogFile(const std::string&);
         void log(const Level&, const char *, va_list);
         void setLogLevel(const Level&);
+        static LogHandler& getHandler() {
+            static LogHandler instance;
+            return instance;
+        }
+
+        LogHandler& operator<<(const std::string&);
+        LogHandler& operator<<(const int&);
+        LogHandler& operator<<(const double&);
 
     private:
+        LogHandler();
+        // running status control
         std::mutex logMtx;
         std::condition_variable logCV;
         std::thread outputThread;
         bool isStop;
 
+        // log configuration
         const unsigned MaxMsgSize;  // FIXME unkown buffer size
         unsigned maxBufferSize;
         std::chrono::seconds flushFrequency;
@@ -87,15 +97,15 @@ namespace Logger {
         std::string logFile;
         std::ofstream logStream;
         std::string currentTime;
-
         unsigned long logCount;
         Level logLevel;
+        std::map<Output, bool> output;
 
+        // log buffer
         std::queue<std::shared_ptr<Log> > logReadBuffer;
         std::queue<std::shared_ptr<Log> > logWriteBuffer;
 
-        std::map<Output, bool> output;
-
+        // method
         void outputEngine();
         void openLogStream();
         void outputToConsole(const std::string&) const;
@@ -103,7 +113,7 @@ namespace Logger {
         std::string formatOutput(std::shared_ptr<Log>) const;
     };
 
-    extern LogHandler LoggingHandler;  // Global logging handler
+    extern LogHandler& LoggingHandler;  // Global logging handler
 
     inline void logInfo(const char * fmt, ...) {
         va_list args;

@@ -11,10 +11,10 @@ namespace Logger {
         logFile("app.log"),
         logCount(0),
         logLevel(Level::Info),
-        logReadBuffer(),
-        logWriteBuffer(),
         output({{Output::FILE, true},
-                {Output::CONSOLE, true}}) {}
+                {Output::CONSOLE, true}}),
+        logReadBuffer(),
+        logWriteBuffer() {}
 
     LogHandler::~LogHandler() {
         if( ! isStop) stop();
@@ -128,6 +128,10 @@ namespace Logger {
         }
     }
 
+    LogHandler& LogHandler::operator<<(const std::string&) {
+        return *this;
+    }
+
     /**
      * Open a file stream
      */
@@ -230,5 +234,5 @@ namespace Logger {
         return buffer;
     }
 
-    LogHandler LoggingHandler;  // Global logging handler
+    LogHandler& LoggingHandler = LogHandler::getHandler();  // Global logging handler
 }

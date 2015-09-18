@@ -38,7 +38,6 @@ void whiteBox() {
     for(unsigned idx = 0; idx < 11; ++ idx) {
         log(logLevel::Warn)("Warning Test");
         log(logLevel::Error)("Test %u", idx);
-        // log(logLevel::Error)("Test" + std::to_string(idx));
     }
 }
 
