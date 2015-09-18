@@ -62,8 +62,11 @@ namespace Logger {
 
     enum class Output {FILE, CONSOLE};
 
+    enum class Input {FIN};
+
     class LogHandler final {
     public:
+        LogHandler(const LogHandler&) = delete;
         ~LogHandler();
 
         void init();
@@ -71,12 +74,10 @@ namespace Logger {
         void setOutput(const Output&, const bool&);
         void setLogFile(const std::string&);
         void log(const Level&, const char *, va_list);
+        void log(const Level&, const std::string&);
         void setLogLevel(const Level&);
+        bool isLevelAvailable(const Level&) const;
         static LogHandler& getHandler();
-
-        LogHandler& operator<<(const std::string&);
-        LogHandler& operator<<(const int&);
-        LogHandler& operator<<(const double&);
 
     private:
         LogHandler();
@@ -84,7 +85,7 @@ namespace Logger {
         std::mutex logMtx;
         std::condition_variable logCV;
         std::thread outputThread;
-        bool isStop;
+        alignas(64) bool isStop;
 
         // log configuration
         const unsigned MaxMsgSize;  // FIXME unkown buffer size
@@ -93,14 +94,15 @@ namespace Logger {
         std::string logDir;
         std::string logFile;
         std::ofstream logStream;
-        std::string currentTime;
+        alignas(64) std::string currentTime;
         unsigned long logCount;
         Level logLevel;
         std::map<Output, bool> output;
 
         // log buffer
-        std::queue<std::shared_ptr<Log> > logReadBuffer;
-        std::queue<std::shared_ptr<Log> > logWriteBuffer;
+        // NOTE avoid false sharing
+        alignas(64) std::queue<std::shared_ptr<Log> > logReadBuffer;
+        alignas(64) std::queue<std::shared_ptr<Log> > logWriteBuffer;
 
         // method
         void outputEngine();
@@ -111,6 +113,29 @@ namespace Logger {
     };
 
     extern LogHandler& LoggingHandler;  // Global logging handler
+
+    class LogStream final {
+    public:
+        LogStream() = delete;
+        LogStream(const Level&, const bool&);
+        LogStream(const LogStream&) = default;
+        ~LogStream();
+
+        template<typename T>
+            LogStream& operator<<(const T& msg) {
+            logMsg += std::to_string(msg);
+            return *this;
+        }
+        LogStream& operator<<(const std::string&);
+        LogStream& operator<<(const char *);
+
+        void operator<<(const Input&);
+
+    private:
+        bool isAvailable;
+        Level logLevel;
+        std::string logMsg;
+    };
 
     inline void logInfo(const char * fmt, ...) {
         va_list args;
@@ -140,19 +165,9 @@ namespace Logger {
         va_end(args);
     }
 
-    typedef void (*logFunc)(const char *, ...);
-
-    inline logFunc log(const Level& level) {
-        switch(level) {
-        case Level::Debug:
-            return &logDebug;
-        case Level::Info:
-            return &logInfo;
-        case Level::Warn:
-            return &logWarn;
-        case Level::Error:
-            return &logError;
-        }
+    inline LogStream log(const Level& level) {
+        LogStream logStream(level, LoggingHandler.isLevelAvailable(level));
+        return logStream;
     }
 }
 

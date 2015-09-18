@@ -14,7 +14,9 @@ namespace Logger {
         output({{Output::FILE, true},
                 {Output::CONSOLE, true}}),
         logReadBuffer(),
-        logWriteBuffer() {}
+        logWriteBuffer() {
+
+    }
 
     LogHandler::~LogHandler() {
         if( ! isStop) stop();
@@ -25,11 +27,12 @@ namespace Logger {
      * it will open a file Stream if it is allowed to write to a log file
      */
     void LogHandler::init() {
-        std::lock_guard<std::mutex> lck(logMtx);
+        std::lock_guard<std::mutex> logLck(logMtx);
         if( ! isStop) {
             throw std::logic_error("Logging handler had inited");
         }
         isStop = false;
+        currentTime = getCurrentTime();
         outputThread = std::thread(&LogHandler::outputEngine, this);
         if(logStream.is_open()) {
             logStream.close();
@@ -59,10 +62,10 @@ namespace Logger {
         case Output::FILE:
             if( ! isAllowed && logStream.is_open()) {
                 logStream.close();
-            } else if( ! this->output.at(Output::FILE) && isAllowed) {
-                const std::string logPath = dirAndFileToPath(logDir, logFile);
-                logStream = std::ofstream(logPath, std::ofstream::out | std::ofstream::app);
-            }
+            } // else if( ! this->output.at(Output::FILE) && isAllowed) {
+            //     // const std::string logPath = dirAndFileToPath(logDir, logFile);
+            //     // logStream = std::ofstream(logPath, std::ofstream::out | std::ofstream::app);
+            // }
             this->output.at(Output::FILE) = isAllowed;
             break;
         case Output::CONSOLE:
@@ -94,14 +97,24 @@ namespace Logger {
         logLevel = level;
     }
 
+    bool LogHandler::isLevelAvailable(const Logger::Level& level) const {
+        return level >= logLevel;
+    }
+
     /**
-     * Log operation
+     * Log operation for format and args
      */
     void LogHandler::log(const Level& level, const char * fmt, va_list args) {
         // create log message before lock mutex which may block
         char msg[MaxMsgSize];
         vsprintf (msg, fmt, args);
+        log(level, msg);
+    }
 
+    /**
+     * Log operation
+     */
+    void LogHandler::log(const Level& level, const std::string& msg) {
         std::shared_ptr<Log> logMsg(new Log);
         logMsg->index = ++ logCount;  // FIXME
         logMsg->time = currentTime;
@@ -126,10 +139,6 @@ namespace Logger {
         if(logReadBuffer.size() >= maxBufferSize) {
             logCV.notify_one();
         }
-    }
-
-    LogHandler& LogHandler::operator<<(const std::string&) {
-        return *this;
     }
 
     /**
@@ -174,7 +183,6 @@ namespace Logger {
      * Another thread for output to file
      */
     void LogHandler::outputEngine() {
-        currentTime = getCurrentTime();
         while( ! isStop) {
             std::unique_lock<std::mutex> logLck(logMtx);
             while(logWriteBuffer.empty()) {
@@ -240,4 +248,27 @@ namespace Logger {
     }
 
     LogHandler& LoggingHandler = LogHandler::getHandler();  // Global logging handler
+
+    LogStream::LogStream(const Level& level, const bool& available) :
+        isAvailable(available),
+        logLevel(level) {}
+
+    LogStream::~LogStream() {
+    }
+
+    LogStream& LogStream::operator<<(const std::string& msg) {
+        logMsg += msg;
+        return *this;
+    }
+
+    LogStream& LogStream::operator<<(const char * msg) {
+        logMsg += msg;
+        return *this;
+    }
+
+    void LogStream::operator<<(const Input& msg) {
+        if(isAvailable && msg == Input::FIN) {
+            LoggingHandler.log(logLevel, logMsg);
+        }
+    }
 }
