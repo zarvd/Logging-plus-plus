@@ -72,10 +72,7 @@ namespace Logger {
         void setLogFile(const std::string&);
         void log(const Level&, const char *, va_list);
         void setLogLevel(const Level&);
-        static LogHandler& getHandler() {
-            static LogHandler instance;
-            return instance;
-        }
+        static LogHandler& getHandler();
 
         LogHandler& operator<<(const std::string&);
         LogHandler& operator<<(const int&);

@@ -234,5 +234,10 @@ namespace Logger {
         return buffer;
     }
 
+    LogHandler& LogHandler::getHandler() {
+        static LogHandler instance;
+        return instance;
+    }
+
     LogHandler& LoggingHandler = LogHandler::getHandler();  // Global logging handler
 }
