@@ -9,7 +9,7 @@ Logging plus plus implements in C++
 #### Output
 - C/Java function style
 ```c++
-log(logLevel::Info)("Log test: %d", i);
+logInfo("Log test: %d", i);
 ```
 - C++ stream style
 ```c++
