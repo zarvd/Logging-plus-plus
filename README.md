@@ -6,7 +6,14 @@ Logging plus plus implements in C++
 - Thread-safe
 - Flexible configuration
 
-#### Usage
+#### Output
+- C/Java function style
+```c++
+log(logLevel::Info)("Log test: %d", i);
+```
+- C++ stream style **TODO**
+
+#### Example
 ```c++
 #include "logger.hpp"
 
@@ -19,7 +26,9 @@ using logLevel = Logger::Level;
 
 int main(void) {
     LoggingHandler.init();
-    log(logLevel::Info)("Log test");
+    for(unsigned i = 1; i < 100000; ++ i) {
+        log(logLevel::Info)("Log test: %d", i);  // format output
+    }
     logInfo("test");
 }
 ```
