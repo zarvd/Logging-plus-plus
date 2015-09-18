@@ -97,8 +97,11 @@ namespace Logger {
     /**
      * Log operation
      */
-    void LogHandler::log(const Level& level, const std::string& msg) {
+    void LogHandler::log(const Level& level, const char * fmt, va_list args) {
         // create log message before lock mutex which may block
+        char msg[MaxMsgSize];
+        vsprintf (msg, fmt, args);
+
         std::shared_ptr<Log> logMsg(new Log);
         logMsg->index = ++ logCount;  // FIXME
         logMsg->time = currentTime;
@@ -167,6 +170,7 @@ namespace Logger {
      * Another thread for output to file
      */
     void LogHandler::outputEngine() {
+        currentTime = getCurrentTime();
         while( ! isStop) {
             std::unique_lock<std::mutex> logLck(logMtx);
             while(logWriteBuffer.empty()) {

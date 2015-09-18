@@ -6,6 +6,8 @@
 #include <string>
 #include <ctime>
 #include <chrono>
+#include <cstdio>
+#include <cstdarg>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -69,7 +71,7 @@ namespace Logger {
         void stop();
         void setOutput(const Output&, const bool&);
         void setLogFile(const std::string&);
-        void log(const Level&, const std::string&);
+        void log(const Level&, const char *, va_list);
         void setLogLevel(const Level&);
 
     private:
@@ -103,23 +105,35 @@ namespace Logger {
 
     extern LogHandler LoggingHandler;  // Global logging handler
 
-    inline void logInfo(const std::string& msg) {
-        LoggingHandler.log(Level::Info, msg);
+    inline void logInfo(const char * fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        LoggingHandler.log(Level::Info, fmt, args);
+        va_end(args);
     }
 
-    inline void logDebug(const std::string& msg) {
-        LoggingHandler.log(Level::Debug, msg);
+    inline void logDebug(const char * fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        LoggingHandler.log(Level::Debug, fmt, args);
+        va_end(args);
     }
 
-    inline void logWarn(const std::string& msg) {
-        LoggingHandler.log(Level::Warn, msg);
+    inline void logWarn(const char * fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        LoggingHandler.log(Level::Warn, fmt, args);
+        va_end(args);
     }
 
-    inline void logError(const std::string& msg) {
-        LoggingHandler.log(Level::Error, msg);
+    inline void logError(const char * fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        LoggingHandler.log(Level::Error, fmt, args);
+        va_end(args);
     }
 
-    typedef void (*logFunc)(const std::string&);
+    typedef void (*logFunc)(const char *, ...);
 
     inline logFunc log(const Level& level) {
         switch(level) {

@@ -9,9 +9,10 @@ using logLevel = Logger::Level;
 
 typedef void (*testFunc)();
 
-void mulitThread() {
+void mulitThread(int thread) {
     for(unsigned i = 1; i < 100000; ++ i) {
-        log(logLevel::Info)("Log test");
+        const char * buf = "Thread";
+        log(logLevel::Info)("Log test %s: %d", buf, thread);
     }
 }
 
@@ -19,7 +20,7 @@ void multiThreadTest() {
     const unsigned threadCount = 10;
     std::thread threads[threadCount];
     for(unsigned idx = 0; idx < threadCount; ++ idx) {
-        threads[idx] = std::thread(mulitThread);
+        threads[idx] = std::thread(mulitThread, idx);
     }
 
     for(auto& thread : threads)
@@ -36,7 +37,8 @@ void singleThreadTest() {
 void whiteBox() {
     for(unsigned idx = 0; idx < 11; ++ idx) {
         log(logLevel::Warn)("Warning Test");
-        log(logLevel::Error)("Test" + std::to_string(idx));
+        log(logLevel::Error)("Test %u", idx);
+        // log(logLevel::Error)("Test" + std::to_string(idx));
     }
 }
 
