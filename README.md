@@ -11,7 +11,10 @@ Logging plus plus implements in C++
 ```c++
 log(logLevel::Info)("Log test: %d", i);
 ```
-- C++ stream style **TODO**
+- C++ stream style
+```c++
+log(logLevel::Info) << "Hello " << 1 << 2.1243 << Input::FIN;
+```
 
 #### Example
 ```c++
@@ -22,13 +25,14 @@ using Logger::logInfo;
 using Logger::logDebug;
 using Logger::logWarn;
 using Logger::logError;
+using Logger::Input;
 using logLevel = Logger::Level;
 
 int main(void) {
     LoggingHandler.init();
     for(unsigned i = 1; i < 100000; ++ i) {
-        log(logLevel::Info)("Log test: %d", i);  // format output
+        log(logLevel::Info) << "Hello " << 1 << 2.1243 << Input::FIN;  // c++ stream style
+        logInfo("Log test: %d", i);  // format output
     }
-    logInfo("test");
 }
 ```
