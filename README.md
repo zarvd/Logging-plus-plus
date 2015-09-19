@@ -1,4 +1,5 @@
 Logging plus plus implements in C++
+[Blog article about this](http://override.rocks/2015/09/13/logging-in-cpp/)
 
 #### Feature
 - Multiple log level(Info, Debug, Warn, Error)
