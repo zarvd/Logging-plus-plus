@@ -2,7 +2,7 @@ Logging plus plus implements in C++
 
 #### Feature
 - Multiple log level(Info, Debug, Warn, Error)
-- High performance(about 1000k / 1 second)
+- High performance(about 2000k items / 0.95s (multithreading))
 - Thread-safe
 - Flexible configuration
 
