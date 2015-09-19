@@ -71,11 +71,14 @@ namespace Logger {
 
         void init();
         void stop();
+
         void setOutput(const Output&, const bool&);
         void setLogFile(const std::string&);
+        void setLogLevel(const Level&);
+
         void log(const Level&, const char *, va_list);
         void log(const Level&, const std::string&);
-        void setLogLevel(const Level&);
+
         bool isLevelAvailable(const Level&) const;
         static LogHandler& getHandler();
 
@@ -83,9 +86,13 @@ namespace Logger {
         LogHandler();
         // running status control
         std::mutex logMtx;
+        std::mutex engineMtx;
         std::condition_variable logCV;
+        std::condition_variable engineCV;
+        bool isEngineReady;
+        bool isCloseEngine;
+        bool isStop;
         std::thread outputThread;
-        alignas(64) bool isStop;
 
         // log configuration
         const unsigned MaxMsgSize;  // FIXME unkown buffer size

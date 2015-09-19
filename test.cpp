@@ -11,9 +11,9 @@ using logLevel = Logger::Level;
 typedef void (*testFunc)();
 
 void mulitThread(int thread) {
-    for(unsigned i = 1; i < 100000; ++ i) {
+    for(unsigned i = 1; i < 200000; ++ i) {
         const char * buf = "Thread";
-        logInfo("Log test %s: %d", buf, thread);
+        // logInfo("Log test %s: %d", buf, thread);
         log(logLevel::Info) << "Log test " << buf << " " << thread << Input::FIN;
     }
 }
@@ -30,9 +30,10 @@ void multiThreadTest() {
 }
 
 void singleThreadTest() {
-    const unsigned long msgCount = 1000000;
+    const unsigned long msgCount = 2000000;
     for(unsigned idx = 0; idx < msgCount; ++ idx) {
-        log(logLevel::Info) << "Log test " << Input::FIN;
+        // log(logLevel::Info) << "Log test " << Input::FIN;
+        logInfo("log test");
     }
 }
 
@@ -64,16 +65,18 @@ void testCreateLog() {
 }
 
 int main(void) {
-    // LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
-    LoggingHandler.setOutput(Logger::Output::FILE, false);
-    LoggingHandler.init();
-    // const unsigned long msgCount = 10;
+    LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
+    // LoggingHandler.setOutput(Logger::Output::FILE, false);
+    // const unsigned msgCount = 10;
     // for(unsigned idx = 0; idx < msgCount; ++ idx) {
-    //     log(logLevel::Info) << "Log test " << Input::FIN;
+    // std::cout << idx << std::endl;
+    LoggingHandler.init();
+    // log(logLevel::Info) << "Log test " << Input::FIN;
+    // LoggingHandler.stop();
     // }
-    log(logLevel::Info) << "Hello" << " Gallon" << 1 << 2.1243 << Input::FIN;
-    // countRunTime("multi", &multiThreadTest);
-    // countRunTime("single", &singleThreadTest);
+    // log(logLevel::Info) << "Hello" << " Gallon" << 1 << 2.1243 << Input::FIN;
+    countRunTime("multi", &multiThreadTest);
+    countRunTime("single", &singleThreadTest);
     // countRunTime("whiteBox", &whiteBox);
     // logInfo("test");
     // whiteBox();

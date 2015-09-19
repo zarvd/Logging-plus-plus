@@ -3,7 +3,10 @@
 
 namespace Logger {
     LogHandler::LogHandler() :
+        isEngineReady(false),
+        isCloseEngine(false),
         isStop(true),
+        outputThread(&LogHandler::outputEngine, this),
         MaxMsgSize(200),
         maxBufferSize(50),
         flushFrequency(3),
@@ -19,7 +22,17 @@ namespace Logger {
     }
 
     LogHandler::~LogHandler() {
-        if( ! isStop) stop();
+        std::unique_lock<std::mutex> lck(engineMtx);
+        // protect isEngineReady
+
+        while( ! isEngineReady) {
+            engineCV.wait(lck);
+        }
+        isCloseEngine = true;
+
+        outputThread.join();
+
+        stop();
     }
 
     /**
@@ -27,45 +40,39 @@ namespace Logger {
      * it will open a file Stream if it is allowed to write to a log file
      */
     void LogHandler::init() {
+        stop();
+
         std::lock_guard<std::mutex> logLck(logMtx);
-        if( ! isStop) {
-            throw std::logic_error("Logging handler had inited");
-        }
         isStop = false;
         currentTime = getCurrentTime();
-        outputThread = std::thread(&LogHandler::outputEngine, this);
-        if(logStream.is_open()) {
-            logStream.close();
-        }
+
         if(output.at(Output::FILE)) {
             openLogStream();
         }
     }
 
     void LogHandler::stop() {
-        if(isStop) {
-            throw std::logic_error("Logging handler had stopped");
-        }
+        std::lock_guard<std::mutex> lck(logMtx);
+        if(isStop) return;
+
         isStop = true;
-        outputThread.join();
+
         if(logStream.is_open()) {
             logStream.close();
         }
     }
 
     /**
-     * Setting output allowance
+     * Setting output filter
      */
     void LogHandler::setOutput(const Output& output, const bool& isAllowed) {
         std::lock_guard<std::mutex> lck(logMtx);
+        if( ! isStop) return;  // unable to modify when running
         switch(output) {
         case Output::FILE:
             if( ! isAllowed && logStream.is_open()) {
                 logStream.close();
-            } // else if( ! this->output.at(Output::FILE) && isAllowed) {
-            //     // const std::string logPath = dirAndFileToPath(logDir, logFile);
-            //     // logStream = std::ofstream(logPath, std::ofstream::out | std::ofstream::app);
-            // }
+            }
             this->output.at(Output::FILE) = isAllowed;
             break;
         case Output::CONSOLE:
@@ -79,6 +86,7 @@ namespace Logger {
      */
     void LogHandler::setLogFile(const std::string& logPath) {
         std::lock_guard<std::mutex> lck(logMtx);
+        if( ! isStop) return;
 
         if(logStream.is_open()) {
             logStream.close();
@@ -94,6 +102,8 @@ namespace Logger {
      */
     void LogHandler::setLogLevel(const Level& level) {
         std::lock_guard<std::mutex> lck(logMtx);
+        if( ! isStop) return;
+
         logLevel = level;
     }
 
@@ -123,10 +133,10 @@ namespace Logger {
         logMsg->logMsg = formatOutput(logMsg);  // NOTE
 
         // it may block
-        std::unique_lock<std::mutex> lck(logMtx);
+        std::lock_guard<std::mutex> logLck(logMtx);
 
         if(isStop) {
-            throw std::logic_error("logging handler haven't inited");
+            throw std::logic_error("logging handler haven't been inited");
         }
         if(level < logLevel) return;
         if(output.at(Output::FILE) && ! logStream.is_open()) {
@@ -145,6 +155,7 @@ namespace Logger {
      * Open a file stream
      */
     void LogHandler::openLogStream() {
+        // NOTE not thread-safe
         if(logStream.is_open()) {
             logStream.close();
         }
@@ -183,12 +194,22 @@ namespace Logger {
      * Another thread for output to file
      */
     void LogHandler::outputEngine() {
-        while( ! isStop) {
-            std::unique_lock<std::mutex> logLck(logMtx);
-            while(logWriteBuffer.empty()) {
-                logCV.wait_for(logLck, flushFrequency);
-                logWriteBuffer.swap(logReadBuffer);
-                if(isStop && logWriteBuffer.empty()) exit(0);
+        while( ! isCloseEngine) {
+
+            if( ! isEngineReady) {
+                // make sure engine is up
+                std::lock_guard<std::mutex> lck(engineMtx);  // protect isEngineReady
+                isEngineReady = true;
+                engineCV.notify_one();
+            }
+
+            {
+                std::unique_lock<std::mutex> logLck(logMtx);  // protect logReadBuffer
+                while(logWriteBuffer.empty()) {
+                    logCV.wait_for(logLck, flushFrequency);
+                    logWriteBuffer.swap(logReadBuffer);
+                    if(isCloseEngine && logWriteBuffer.empty()) exit(0);
+                }
             }
 
             // fresh time
@@ -196,16 +217,22 @@ namespace Logger {
 
             while( ! logWriteBuffer.empty()) {
                 std::shared_ptr<Log> logMsg = logWriteBuffer.front();
-                // std::string outputMsg = formatOutput(logMsg);
                 std::string outputMsg = logMsg->logMsg;
+
+                // no need to use mutex protect output configuration
+                // and log stream descriptor
+                // because it cannot be modified when Handler is running
                 if(output.at(Output::CONSOLE)) {
                     outputToConsole(outputMsg);
                 }
+
                 if(output.at(Output::FILE)) {
                     outputToFile(outputMsg);
                 }
+
                 logWriteBuffer.pop();
             }
+
             if(output.at(Output::FILE)) {
                 logStream << std::flush;
             }
