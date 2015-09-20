@@ -59,8 +59,8 @@ void testCreateLog() {
 }
 
 int main(void) {
-    LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
-    // LoggingHandler.setOutput(Logger::Output::FILE, false);
+    // LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
+    LoggingHandler.setOutput(Logger::Output::FILE, false);
     // const unsigned msgCount = 10;
     // for(unsigned idx = 0; idx < msgCount; ++ idx) {
     // std::cout << idx << std::endl;
@@ -68,8 +68,8 @@ int main(void) {
     // log(logLevel::Info) << "Log test " << Input::FIN;
     // LoggingHandler.stop();
     // }
-    // Log(logLevel::Info) << "Hello" << " Gallon" << 1 << 2.1243 << Input::FIN;
-    countRunTime("multi", &multiThreadTest);
+    Log(logLevel::Info) << "Hello" << " Gallon" << 1 << 2.1243 << Input::FIN;
+    // countRunTime("multi", &multiThreadTest);
     // countRunTime("single", &singleThreadTest);
     return 0;
 }

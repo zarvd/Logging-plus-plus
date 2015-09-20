@@ -12,6 +12,9 @@ Logging plus plus implements in C++
 ```c++
 Log(logLevel::Info) << "Hello " << 1 << 2.1243 << Input::FIN;
 ```
+`
+$ [1] INFO -> [test.cpp::main::71] Sun Sep 20 09:32:42 2015 >> Hello Gallon12.124300
+`
 
 #### Example
 ```c++
