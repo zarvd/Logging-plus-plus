@@ -52,11 +52,14 @@ namespace Logger {
         return getTime(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
     }
 
-    struct Log {
+    struct LogEntity {
         unsigned long index;
         Level level;
         std::string time;
         std::string message;
+        std::string filename;
+        std::string funcname;
+        unsigned line;
         std::string logMsg;  // NOTE
     };
 
@@ -70,15 +73,12 @@ namespace Logger {
         ~LogHandler();
 
         void init();
-        void stop();
 
         void setOutput(const Output&, const bool&);
         void setLogFile(const std::string&);
         void setLogLevel(const Level&);
 
-        void log(const Level&, const char *, va_list);
-        void log(const Level&, const std::string&);
-
+        void log(const Level&, const std::string&, const std::string&, const std::string&, const unsigned&);
         bool isLevelAvailable(const Level&) const;
         static LogHandler& getHandler();
 
@@ -108,15 +108,15 @@ namespace Logger {
 
         // log buffer
         // NOTE avoid false sharing
-        alignas(64) std::queue<std::shared_ptr<Log> > logReadBuffer;
-        alignas(64) std::queue<std::shared_ptr<Log> > logWriteBuffer;
+        alignas(64) std::queue<std::shared_ptr<LogEntity> > logReadBuffer;
+        alignas(64) std::queue<std::shared_ptr<LogEntity> > logWriteBuffer;
 
         // method
         void outputEngine();
         void openLogStream();
         void outputToConsole(const std::string&) const;
         void outputToFile(const std::string&);
-        std::string formatOutput(std::shared_ptr<Log>) const;
+        std::string formatOutput(std::shared_ptr<LogEntity>) const;
     };
 
     extern LogHandler& LoggingHandler;  // Global logging handler
@@ -124,7 +124,7 @@ namespace Logger {
     class LogStream final {
     public:
         LogStream() = delete;
-        LogStream(const Level&, const bool&);
+        LogStream(const Level&, const bool&, const std::string&, const std::string&, const unsigned&);
         LogStream(const LogStream&) = default;
         ~LogStream();
 
@@ -141,41 +141,19 @@ namespace Logger {
     private:
         bool isAvailable;
         Level logLevel;
+        std::string filename;
+        std::string funcname;
+        unsigned line;
         std::string logMsg;
     };
 
-    inline void logInfo(const char * fmt, ...) {
-        va_list args;
-        va_start(args, fmt);
-        LoggingHandler.log(Level::Info, fmt, args);
-        va_end(args);
-    }
-
-    inline void logDebug(const char * fmt, ...) {
-        va_list args;
-        va_start(args, fmt);
-        LoggingHandler.log(Level::Debug, fmt, args);
-        va_end(args);
-    }
-
-    inline void logWarn(const char * fmt, ...) {
-        va_list args;
-        va_start(args, fmt);
-        LoggingHandler.log(Level::Warn, fmt, args);
-        va_end(args);
-    }
-
-    inline void logError(const char * fmt, ...) {
-        va_list args;
-        va_start(args, fmt);
-        LoggingHandler.log(Level::Error, fmt, args);
-        va_end(args);
-    }
-
-    inline LogStream log(const Level& level) {
-        LogStream logStream(level, LoggingHandler.isLevelAvailable(level));
+    inline LogStream _log(const Level& level, const std::string& file, const std::string& func, const unsigned& line) {
+        LogStream logStream(level, LoggingHandler.isLevelAvailable(level),
+                            file, func, line);
         return logStream;
     }
+
+#define Log(level) _log(level, __FILE__, __func__, __LINE__)
 }
 
 #endif /* LOGGER_H */
