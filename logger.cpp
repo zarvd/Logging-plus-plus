@@ -255,8 +255,7 @@ namespace Logger {
 
     LogHandler& LoggingHandler = LogHandler::getHandler();  // Global logging handler
 
-    LogStream::LogStream(const Level& level, const bool& available, const std::string& file, const std::string& func, const unsigned& line) :
-        isAvailable(available),
+    LogStream::LogStream(const Level& level, const std::string& file, const std::string& func, const unsigned& line) :
         logLevel(level),
         filename(file),
         funcname(func),
@@ -276,7 +275,7 @@ namespace Logger {
     }
 
     void LogStream::operator<<(const Input& msg) {
-        if(isAvailable && msg == Input::FIN) {
+        if(msg == Input::FIN) {
             LoggingHandler.log(logLevel, logMsg, filename, funcname, line);
         }
     }

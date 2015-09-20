@@ -2,24 +2,27 @@
 #define LOGGER_H
 
 #include <iostream>
+
 #include <fstream>
 #include <string>
+#include <map>
+#include <queue>
+
 #include <ctime>
 #include <chrono>
-#include <cstdio>
-#include <cstdarg>
+
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+
+#include <exception>
+
 #include <unistd.h>
 #include <sys/stat.h>
-#include <exception>
-#include <map>
-#include <queue>
-#include "lib.hpp"
 
 
 namespace Logger {
+
     enum Level {
         Debug = 0,
         Info = 1,
@@ -122,12 +125,11 @@ namespace Logger {
     class LogStream final {
     public:
         LogStream() = delete;
-        LogStream(const Level&, const bool&, const std::string&, const std::string&, const unsigned&);
+        LogStream(const Level&, const std::string&, const std::string&, const unsigned&);
         LogStream(const LogStream&) = default;
         ~LogStream();
 
-        template<typename T>
-            LogStream& operator<<(const T& msg) {
+        template<typename T> LogStream& operator<<(const T& msg) {
             logMsg += std::to_string(msg);
             return *this;
         }
@@ -137,7 +139,6 @@ namespace Logger {
         void operator<<(const Input&);
 
     private:
-        bool isAvailable;
         Level logLevel;
         std::string filename;
         std::string funcname;
@@ -145,17 +146,36 @@ namespace Logger {
         std::string logMsg;
     };
 
-    inline LogStream _log(const Level& level, const std::string& file, const std::string& func, const unsigned& line) {
-        LogStream logStream(level, LoggingHandler.isLevelAvailable(level),
-                            file, func, line);
-        return logStream;
+    // inline LogStream _log(const Level& level, const std::string& file, const std::string& func, const unsigned& line) {
+    //     LogStream logStream(level, LoggingHandler.isLevelAvailable(level),
+    //                         file, func, line);
+    //     return logStream;
+    // }
+
+    inline void pathToFile(const std::string& path, std::string& dir, std::string& filename) {
+        std::size_t foundPos = path.find_last_of("/");
+        if(foundPos != std::string::npos) {
+            dir = path.substr(0, foundPos);
+            filename = path.substr(foundPos + 1);
+        } else {
+            dir = "";
+            filename = path;
+        }
     }
 
-#define Log(level)                                          \
-    if( ! Logger::LoggingHandler.isLevelAvailable(level))   \
-        ;                                                   \
-    else                                                    \
-        _log(level, __FILE__, __func__, __LINE__)
+    inline std::string dirAndFileToPath(const std::string& dir, const std::string& filename) {
+        if(dir == "") {
+            return "./" + filename;
+        } else if(dir.back() == '/') {
+            return dir + filename;
+        } else {
+            return dir + "/" + filename;
+        }
+    }
 }
+
+#define Log(level)                                              \
+    if( ! Logger::LoggingHandler.isLevelAvailable(level)) ;     \
+    else Logger::LogStream(level, __FILE__, __func__, __LINE__)
 
 #endif /* LOGGER_H */
