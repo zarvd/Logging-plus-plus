@@ -153,7 +153,11 @@ namespace Logger {
         return logStream;
     }
 
-#define Log(level) _log(level, __FILE__, __func__, __LINE__)
+#define Log(level)                                          \
+    if( ! Logger::LoggingHandler.isLevelAvailable(level))   \
+        ;                                                   \
+    else                                                    \
+        _log(level, __FILE__, __func__, __LINE__)
 }
 
 #endif /* LOGGER_H */
