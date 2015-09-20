@@ -30,30 +30,9 @@ namespace Logger {
         Error = 3
     };
 
-    inline std::string getLogLevel(const Level& level) {
-        switch(level) {
-        case Level::Debug:
-            return "DEBUG";
-        case Level::Info:
-            return "INFO";
-        case Level::Warn:
-            return "WARN";
-        case Level::Error:
-            return "ERROR";
-        }
-    }
+    enum class Output {FILE, CONSOLE};
 
-    inline std::string getTime(const std::time_t rawTime) {
-        std::string time = std::ctime(&rawTime);
-        if(time.back() == '\n') {
-            time.pop_back();
-        }
-        return time;
-    }
-
-    inline std::string getCurrentTime() {
-        return getTime(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
-    }
+    enum class Input {FIN};
 
     struct LogEntity {
         Level level;
@@ -64,10 +43,6 @@ namespace Logger {
         unsigned line;
         std::string logMsg;  // NOTE
     };
-
-    enum class Output {FILE, CONSOLE};
-
-    enum class Input {FIN};
 
     class LogHandler final {
     public:
@@ -120,8 +95,6 @@ namespace Logger {
         std::string formatOutput(std::shared_ptr<LogEntity>) const;
     };
 
-    extern LogHandler& LoggingHandler;  // Global logging handler
-
     class LogStream final {
     public:
         LogStream() = delete;
@@ -146,11 +119,32 @@ namespace Logger {
         std::string logMsg;
     };
 
-    // inline LogStream _log(const Level& level, const std::string& file, const std::string& func, const unsigned& line) {
-    //     LogStream logStream(level, LoggingHandler.isLevelAvailable(level),
-    //                         file, func, line);
-    //     return logStream;
-    // }
+    extern LogHandler& LoggingHandler;  // Global logging handler
+
+    inline std::string getLogLevel(const Level& level) {
+        switch(level) {
+        case Level::Debug:
+            return "DEBUG";
+        case Level::Info:
+            return "INFO";
+        case Level::Warn:
+            return "WARN";
+        case Level::Error:
+            return "ERROR";
+        }
+    }
+
+    inline std::string getTime(const std::time_t rawTime) {
+        std::string time = std::ctime(&rawTime);
+        if(time.back() == '\n') {
+            time.pop_back();
+        }
+        return time;
+    }
+
+    inline std::string getCurrentTime() {
+        return getTime(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+    }
 
     inline void pathToFile(const std::string& path, std::string& dir, std::string& filename) {
         std::size_t foundPos = path.find_last_of("/");
