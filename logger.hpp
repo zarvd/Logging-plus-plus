@@ -99,7 +99,7 @@ namespace Logger {
     public:
         LogStream() = delete;
         LogStream(const Level&, const std::string&, const std::string&, const unsigned&);
-        LogStream(const LogStream&) = default;
+        LogStream(const LogStream&) = delete;
         ~LogStream();
 
         template<typename T> LogStream& operator<<(const T& msg) {
