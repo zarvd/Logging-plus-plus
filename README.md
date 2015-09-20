@@ -13,7 +13,7 @@ Logging plus plus implements in C++
 Log(logLevel::Info) << "Hello" << " Gallon" << 1 << 2.1243 << Input::FIN;
 ```
 `
-$ [1] INFO -> [test.cpp::main::71] Sun Sep 20 09:32:42 2015 >> Hello Gallon12.124300
+$ INFO -> [test.cpp::main::71] Sun Sep 20 09:32:42 2015 >> Hello Gallon12.124300
 `
 
 #### Example
