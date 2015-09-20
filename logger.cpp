@@ -12,7 +12,6 @@ namespace Logger {
         flushFrequency(3),
         logDir(""),
         logFile("app.log"),
-        logCount(0),
         logLevel(Level::Info),
         output({{Output::FILE, true},
                 {Output::CONSOLE, true}}),
@@ -110,7 +109,6 @@ namespace Logger {
         if(level < logLevel) return;
 
         std::shared_ptr<LogEntity> logMsg(new LogEntity);
-        logMsg->index = ++ logCount;
         logMsg->time = currentTime;
         logMsg->level = level;
         logMsg->message = msg;
@@ -176,7 +174,7 @@ namespace Logger {
      * Another thread for output to file
      */
     void LogHandler::outputEngine() {
-        while( ! isCloseEngine) {
+        while(true) {
             if( ! isEngineReady) {
                 // make sure engine is up
                 std::lock_guard<std::mutex> lck(engineMtx);  // protect isEngineReady
@@ -240,8 +238,7 @@ namespace Logger {
      */
     std::string LogHandler::formatOutput(std::shared_ptr<LogEntity> logMsg) const {
         char buffer[MaxMsgSize];
-        snprintf(buffer, MaxMsgSize, "[%lu] %s -> [%s::%s::%u] %s >> %s\n",
-                 logMsg->index,
+        snprintf(buffer, MaxMsgSize, "%s -> [%s::%s::%u] %s >> %s\n",
                  getLogLevel(logMsg->level).c_str(),
                  logMsg->filename.c_str(),
                  logMsg->funcname.c_str(),

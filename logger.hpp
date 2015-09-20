@@ -53,7 +53,6 @@ namespace Logger {
     }
 
     struct LogEntity {
-        unsigned long index;
         Level level;
         std::string time;
         std::string message;
@@ -102,7 +101,6 @@ namespace Logger {
         std::string logFile;
         std::ofstream logStream;
         alignas(64) std::string currentTime;
-        unsigned long logCount;
         Level logLevel;
         std::map<Output, bool> output;
 

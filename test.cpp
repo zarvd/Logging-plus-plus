@@ -7,9 +7,8 @@ using logLevel = Logger::Level;
 typedef void (*testFunc)();
 
 void mulitThread(int thread) {
-    for(unsigned i = 1; i < 200000; ++ i) {
-        const char * buf = "Thread";
-        Log(logLevel::Info) << "Log test " << buf << " " << thread << Input::FIN;
+    for(unsigned i = 0; i < 200000; ++ i) {
+        Log(logLevel::Info) << "Log test " << "Thread" << thread << Input::FIN;
     }
 }
 
@@ -59,17 +58,11 @@ void testCreateLog() {
 }
 
 int main(void) {
-    // LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
-    LoggingHandler.setOutput(Logger::Output::FILE, false);
-    // const unsigned msgCount = 10;
-    // for(unsigned idx = 0; idx < msgCount; ++ idx) {
-    // std::cout << idx << std::endl;
+    LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
+    LoggingHandler.setLogFile("multi.log");
+    // LoggingHandler.setLogFile("single.log");
     LoggingHandler.init();
-    // log(logLevel::Info) << "Log test " << Input::FIN;
-    // LoggingHandler.stop();
-    // }
-    Log(logLevel::Info) << "Hello" << " Gallon" << 1 << 2.1243 << Input::FIN;
-    // countRunTime("multi", &multiThreadTest);
+    countRunTime("multi", &multiThreadTest);
     // countRunTime("single", &singleThreadTest);
     return 0;
 }
