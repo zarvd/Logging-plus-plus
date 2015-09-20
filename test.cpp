@@ -1,14 +1,13 @@
 #include "logger.hpp"
 
 using Logger::LoggingHandler;
-using Logger::Input;
 using logLevel = Logger::Level;
 
 typedef void (*testFunc)();
 
 void mulitThread(int thread) {
     for(unsigned i = 0; i < 200000; ++ i) {
-        Log(logLevel::Info) << "Log test " << "Thread" << thread << Input::FIN;
+        Log(logLevel::Info) << "Log test " << "Thread" << thread;
     }
 }
 
@@ -26,13 +25,13 @@ void multiThreadTest() {
 void singleThreadTest() {
     const unsigned long msgCount = 2000000;
     for(unsigned idx = 0; idx < msgCount; ++ idx) {
-        Log(logLevel::Info) << "Log test " << Input::FIN;
+        Log(logLevel::Info) << "Log test ";
     }
 }
 
 void whiteBox() {
     for(unsigned idx = 0; idx < 11; ++ idx) {
-        Log(logLevel::Info) << "Log test " << Input::FIN;
+        Log(logLevel::Info) << "Log test ";
     }
 }
 
@@ -58,6 +57,7 @@ void testCreateLog() {
 }
 
 int main(void) {
+    // LoggingHandler.setOutput(Logger::Output::FILE, false);
     LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
     LoggingHandler.setLogFile("multi.log");
     // LoggingHandler.setLogFile("single.log");

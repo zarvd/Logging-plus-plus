@@ -262,6 +262,7 @@ namespace Logger {
         line(line) {}
 
     LogStream::~LogStream() {
+        LoggingHandler.log(logLevel, logMsg, filename, funcname, line);
     }
 
     LogStream& LogStream::operator<<(const std::string& msg) {
@@ -272,11 +273,5 @@ namespace Logger {
     LogStream& LogStream::operator<<(const char * msg) {
         logMsg += msg;
         return *this;
-    }
-
-    void LogStream::operator<<(const Input& msg) {
-        if(msg == Input::FIN) {
-            LoggingHandler.log(logLevel, logMsg, filename, funcname, line);
-        }
     }
 }

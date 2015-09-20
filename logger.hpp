@@ -32,8 +32,6 @@ namespace Logger {
 
     enum class Output {FILE, CONSOLE};
 
-    enum class Input {FIN};
-
     struct LogEntity {
         Level level;
         std::string time;
@@ -108,8 +106,6 @@ namespace Logger {
         }
         LogStream& operator<<(const std::string&);
         LogStream& operator<<(const char *);
-
-        void operator<<(const Input&);
 
     private:
         Level logLevel;
