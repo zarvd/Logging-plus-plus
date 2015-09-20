@@ -76,7 +76,7 @@ namespace Logger {
         std::string logDir;
         std::string logFile;
         std::ofstream logStream;
-        alignas(64) std::string currentTime;
+        std::string currentTime;
         Level logLevel;
         std::map<Output, bool> output;
 
@@ -87,6 +87,7 @@ namespace Logger {
 
         // method
         void outputEngine();
+        void freshCurrentTime();
         void openLogStream();
         void outputToConsole(const std::string&) const;
         void outputToFile(const std::string&);
@@ -130,17 +131,13 @@ namespace Logger {
         }
     }
 
-    inline std::string getTime(const std::time_t rawTime) {
-        std::string time = std::ctime(&rawTime);
-        if(time.back() == '\n') {
-            time.pop_back();
-        }
-        return time;
-    }
-
-    inline std::string getCurrentTime() {
-        return getTime(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
-    }
+    // inline std::string getTime(const std::time_t& rawTime) {
+    //     std::string time = std::ctime(&rawTime);
+    //     if(time.back() == '\n') {
+    //         time.pop_back();
+    //     }
+    //     return time;
+    // }
 
     inline void pathToFile(const std::string& path, std::string& dir, std::string& filename) {
         std::size_t foundPos = path.find_last_of("/");

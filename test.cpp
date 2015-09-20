@@ -7,7 +7,7 @@ typedef void (*testFunc)();
 
 void mulitThread(int thread) {
     for(unsigned i = 0; i < 200000; ++ i) {
-        Log(logLevel::Info) << "Log test " << "Thread" << thread;
+        Log(logLevel::Info) << "Log test thread" << thread;
     }
 }
 
@@ -25,13 +25,7 @@ void multiThreadTest() {
 void singleThreadTest() {
     const unsigned long msgCount = 2000000;
     for(unsigned idx = 0; idx < msgCount; ++ idx) {
-        Log(logLevel::Info) << "Log test ";
-    }
-}
-
-void whiteBox() {
-    for(unsigned idx = 0; idx < 11; ++ idx) {
-        Log(logLevel::Info) << "Log test ";
+        Log(logLevel::Info) << "Log test";
     }
 }
 

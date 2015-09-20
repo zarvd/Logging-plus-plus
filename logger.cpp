@@ -22,7 +22,6 @@ namespace Logger {
 
     LogHandler::~LogHandler() {
         std::unique_lock<std::mutex> engineLck(engineMtx);
-        // protect isEngineReady
 
         while( ! isEngineReady) {
             engineCV.wait(engineLck);
@@ -44,7 +43,7 @@ namespace Logger {
 
         std::lock_guard<std::mutex> logLck(logMtx);
         isStop = false;
-        currentTime = getCurrentTime();
+        freshCurrentTime();  // fresh time before logging
 
         if(output.at(Output::FILE)) {
             openLogStream();
@@ -170,6 +169,13 @@ namespace Logger {
         logStream.open(dirAndFileToPath(logDir, logFile), std::ofstream::out | std::ofstream::app);
     }
 
+    void LogHandler::freshCurrentTime() {
+        std::time_t now;
+        std::time(&now);
+        currentTime = std::ctime(&now);
+        currentTime.pop_back();
+    }
+
     /**
      * Another thread for output to file
      */
@@ -189,11 +195,10 @@ namespace Logger {
                     logCV.wait_for(logLck, flushFrequency);
                     logWriteBuffer.swap(logReadBuffer);
                     if(isCloseEngine && logWriteBuffer.empty()) exit(0);
+                    // fresh time
+                    freshCurrentTime();
                 }
             }
-
-            // fresh time
-            currentTime = getCurrentTime();
 
             while( ! logWriteBuffer.empty()) {
                 std::shared_ptr<LogEntity> logMsg = logWriteBuffer.front();
