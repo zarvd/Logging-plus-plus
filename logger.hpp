@@ -23,6 +23,9 @@
 
 namespace Logger {
 
+    /**
+     * Log msg level
+     */
     enum Level {
         Debug = 0,
         Info = 1,
@@ -30,8 +33,9 @@ namespace Logger {
         Error = 3
     };
 
-    enum class Output {FILE, CONSOLE};
-
+    /**
+     * A single log msg entity
+     */
     struct LogEntity {
         Level level;
         std::string time;
@@ -42,6 +46,9 @@ namespace Logger {
         std::string logMsg;  // NOTE
     };
 
+    /**
+     * Log handler
+     */
     class LogHandler final {
     public:
         LogHandler(const LogHandler&) = delete;
@@ -49,36 +56,44 @@ namespace Logger {
 
         void init();
 
+        // configuration
+        enum class Output {FILE, CONSOLE};
         void setOutput(const Output&, const bool&);
         void setLogFile(const std::string&);
         void setLogLevel(const Level&);
 
+        // main method
         void log(const Level&, const std::string&, const std::string&, const std::string&, const unsigned&);
+
+        // other helpers
         bool isLevelAvailable(const Level&) const;
+
+        // return a static global log handler, singleton
         static LogHandler& getHandler();
 
     private:
         LogHandler();
+
         // running status control
         std::mutex logMtx;
         std::mutex engineMtx;
-        std::condition_variable logCV;
-        std::condition_variable engineCV;
+        std::condition_variable logCV;  // condition: logWriteBuffer
+        std::condition_variable engineCV;  // condition: isEngineReady
         bool isEngineReady;
         bool isCloseEngine;
         bool isStop;
         std::thread outputThread;
 
         // log configuration
-        const unsigned MaxMsgSize;  // FIXME unkown buffer size
-        unsigned maxBufferSize;
-        std::chrono::seconds flushFrequency;
+        const unsigned MaxMsgSize;  // Max single log msg size
+        unsigned maxBufferSize;  // max logWriteBuffer
+        std::chrono::seconds flushFrequency;  // output engine flush buffer frequency
         std::string logDir;
         std::string logFile;
         std::ofstream logStream;
         std::string currentTime;
-        Level logLevel;
-        std::map<Output, bool> output;
+        Level logLevel;  // limit log level
+        std::map<Output, bool> output;  // limit output
 
         // log buffer
         // NOTE avoid false sharing
@@ -94,6 +109,9 @@ namespace Logger {
         std::string formatOutput(std::shared_ptr<LogEntity>) const;
     };
 
+    /**
+     * Log Stream
+     */
     class LogStream final {
     public:
         LogStream() = delete;
@@ -118,6 +136,9 @@ namespace Logger {
 
     extern LogHandler& LoggingHandler;  // Global logging handler
 
+    /**
+     * Transfer Log Level to std::string
+     */
     inline std::string getLogLevel(const Level& level) {
         switch(level) {
         case Level::Debug:
@@ -131,14 +152,9 @@ namespace Logger {
         }
     }
 
-    // inline std::string getTime(const std::time_t& rawTime) {
-    //     std::string time = std::ctime(&rawTime);
-    //     if(time.back() == '\n') {
-    //         time.pop_back();
-    //     }
-    //     return time;
-    // }
-
+    /**
+     * Separate path into diretory and filename
+     */
     inline void pathToFile(const std::string& path, std::string& dir, std::string& filename) {
         std::size_t foundPos = path.find_last_of("/");
         if(foundPos != std::string::npos) {
@@ -150,6 +166,9 @@ namespace Logger {
         }
     }
 
+    /**
+     * Combine diretory and filename
+     */
     inline std::string dirAndFileToPath(const std::string& dir, const std::string& filename) {
         if(dir == "") {
             return "./" + filename;

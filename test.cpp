@@ -52,11 +52,14 @@ void testCreateLog() {
 
 int main(void) {
     // LoggingHandler.setOutput(Logger::Output::FILE, false);
-    LoggingHandler.setOutput(Logger::Output::CONSOLE, false);
+    LoggingHandler.setOutput(Logger::LogHandler::Output::CONSOLE, false);
     LoggingHandler.setLogFile("multi.log");
     // LoggingHandler.setLogFile("single.log");
     LoggingHandler.init();
-    countRunTime("multi", &multiThreadTest);
+    Log(logLevel::Info) << "begin";
+    sleep(5);
+    Log(logLevel::Info) << "end";
+    // countRunTime("multi", &multiThreadTest);
     // countRunTime("single", &singleThreadTest);
     return 0;
 }
