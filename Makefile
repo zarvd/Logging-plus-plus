@@ -1,9 +1,9 @@
-CC=clang++
-FLAG=-Wall -std=c++11 -g -O2 -pthread
+CC = clang++
+FLAG = -Wall -std=c++11 -g -O2 -pthread
 SRCS = $(wildcard *.cpp)
-OBJS=$(SRCS:.cpp=.o)
+OBJS = $(SRCS:.cpp=.o)
 OBJS_WITH_NO_TEST = $(filter-out test.o, $(OBJS))
-TEST=test
+TEST = test
 
 .PHONY: all test clean
 
@@ -20,4 +20,5 @@ test: $(OBJS)
 	$(CC) $(FLAG) $(OBJS) -lm -o $(TEST)
 
 clean:
-	rm *.o $(TEST)
+	-rm *.o $(TEST)
+	-rm -r prod
