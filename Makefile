@@ -1,5 +1,7 @@
 CC=clang++
 FLAG=-Wall -std=c++11 -g -O2 -pthread
+SRCS = $(wildcard *.cpp)
+OBJS=$(SRCS:.cpp=.o)
 MAIN=main
 TEST=test
 
@@ -7,14 +9,11 @@ TEST=test
 
 all: test
 
-logger.o:
-	$(CC) $(FLAG) -c logger.cpp
+$(OBJS):
+	$(CC) $(FLAG) -c $(addsuffix .cpp, $(basename $@))
 
-test.o:
-	$(CC) $(FLAG) -c test.cpp
-
-test: logger.o test.o
-	$(CC) $(FLAG) logger.o test.o -lm -o $(TEST)
+test: $(OBJS)
+	$(CC) $(FLAG) $(OBJS) -lm -o $(TEST)
 
 clean:
 	rm *.o $(TEST)

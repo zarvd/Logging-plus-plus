@@ -1,4 +1,4 @@
-#include "logger.hpp"
+#include "Logger.hpp"
 
 using Logger::LoggingHandler;
 using logLevel = Logger::Level;
@@ -56,10 +56,10 @@ int main(void) {
     LoggingHandler.setLogFile("multi.log");
     // LoggingHandler.setLogFile("single.log");
     LoggingHandler.init();
-    Log(logLevel::Info) << "begin";
-    sleep(5);
-    Log(logLevel::Info) << "end";
-    // countRunTime("multi", &multiThreadTest);
+    // Log(logLevel::Info) << "begin";
+    // sleep(5);
+    // Log(logLevel::Info) << "end";
+    countRunTime("multi", &multiThreadTest);
     // countRunTime("single", &singleThreadTest);
     return 0;
 }

@@ -1,5 +1,4 @@
-#include "logger.hpp"
-
+#include "LogHandler.hpp"
 
 namespace Logger {
     LogHandler::LogHandler() :
@@ -19,6 +18,16 @@ namespace Logger {
         logWriteBuffer() {
 
     }
+
+    struct LogHandler::LogEntity {
+        Level level;
+        std::string time;
+        std::string message;
+        std::string filename;
+        std::string funcname;
+        unsigned line;
+        std::string logMsg;  // NOTE
+    };
 
     LogHandler::~LogHandler() {
         std::unique_lock<std::mutex> engineLck(engineMtx);
@@ -95,8 +104,8 @@ namespace Logger {
         logLevel = level;
     }
 
-    bool LogHandler::isLevelAvailable(const Logger::Level& level) const {
-        return level >= logLevel;
+    bool LogHandler::isLevelAvailable(const Logger::Level& level) {
+        return level >= getHandler().logLevel;
     }
 
     /**
@@ -256,27 +265,5 @@ namespace Logger {
     LogHandler& LogHandler::getHandler() {
         static LogHandler instance;
         return instance;
-    }
-
-    LogHandler& LoggingHandler = LogHandler::getHandler();  // Global logging handler
-
-    LogStream::LogStream(const Level& level, const std::string& file, const std::string& func, const unsigned& line) :
-        logLevel(level),
-        filename(file),
-        funcname(func),
-        line(line) {}
-
-    LogStream::~LogStream() {
-        LoggingHandler.log(logLevel, logMsg, filename, funcname, line);
-    }
-
-    LogStream& LogStream::operator<<(const std::string& msg) {
-        logMsg += msg;
-        return *this;
-    }
-
-    LogStream& LogStream::operator<<(const char * msg) {
-        logMsg += msg;
-        return *this;
     }
 }
