@@ -130,7 +130,7 @@ namespace Logger {
                          const unsigned& line) {
         if(level < logLevel) return;
 
-        std::shared_ptr<LogEntity> logMsg(new LogEntity);
+        std::shared_ptr<LogEntity> logMsg = std::make_shared<LogEntity>();
         logMsg->time = currentTime;
         logMsg->level = level;
         logMsg->message = msg;
