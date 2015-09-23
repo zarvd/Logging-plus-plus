@@ -104,6 +104,20 @@ namespace Logger {
         logLevel = level;
     }
 
+    void LogHandler::setFlushFrequency(const unsigned& fre) {
+        std::lock_guard<std::mutex> lck(logMtx);
+        if( ! isStop) return;
+
+        flushFrequency = std::chrono::seconds(fre);
+    }
+
+    void LogHandler::setMaxBufferSize(const unsigned& size) {
+        std::lock_guard<std::mutex> lck(logMtx);
+        if( ! isStop) return;
+
+        maxBufferSize = size;
+    }
+
     bool LogHandler::isLevelAvailable(const Logger::Level& level) {
         return level >= getHandler().logLevel;
     }

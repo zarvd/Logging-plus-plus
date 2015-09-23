@@ -23,6 +23,8 @@ namespace Logger {
         void setOutput(const Output&, const bool&);
         void setLogFile(const std::string&);
         void setLogLevel(const Level&);
+        void setFlushFrequency(const unsigned&);
+        void setMaxBufferSize(const unsigned&);
 
         // main method
         void log(const Level&, const std::string&, const std::string&, const std::string&, const unsigned&);
