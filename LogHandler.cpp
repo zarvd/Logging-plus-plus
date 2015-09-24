@@ -34,6 +34,11 @@ namespace Logger {
         }
     }
 
+    struct LogHandler::OutputEntity {
+        std::string toConsole;
+        std::string toFile;
+    };
+
     /**
      * Before using a logger, you need to initialize it.
      * it will open a file Stream if it is allowed to write to a log file
@@ -121,7 +126,7 @@ namespace Logger {
                          const unsigned& line) {
         if(level < logLevel) return;
 
-        const std::string outputMsg = formatOutput(level, msg, file, func, line);
+        const auto output = formatOutput(level, msg, file, func, line);
 
         // it may block
         std::lock_guard<std::mutex> logLck(logMtx);
@@ -130,7 +135,7 @@ namespace Logger {
             throw std::logic_error("logging handler haven't been inited");
         }
 
-        logReadBuffer.push_back(outputMsg);
+        logReadBuffer.push_back(output);
 
         // notify output thread to output
         if(logReadBuffer.size() >= maxBufferSize) {
@@ -208,17 +213,17 @@ namespace Logger {
             }
 
             while( ! logWriteBuffer.empty()) {
-                const std::string& logMsg = logWriteBuffer.front();
+                const auto& logMsg = logWriteBuffer.front();
 
                 // no need to use mutex protect output configuration
                 // and log stream descriptor
                 // because it cannot be modified when Handler is running
                 if(output.at(Output::CONSOLE)) {
-                    outputToConsole(logMsg);
+                    outputToConsole(logMsg.toConsole);
                 }
 
                 if(output.at(Output::FILE)) {
-                    outputToFile(logMsg);
+                    outputToFile(logMsg.toFile);
                 }
 
                 logWriteBuffer.pop_front();
@@ -247,9 +252,24 @@ namespace Logger {
     /**
      * get formatted output log
      */
-    std::string LogHandler::formatOutput(const Level& level, const std::string& msg,
+    LogHandler::OutputEntity LogHandler::formatOutput(const Level& level, const std::string& msg,
                                          const std::string& file, const std::string& func,
                                          const unsigned& line) const {
+        std::string color;
+        switch(level) {
+        case Level::Debug:
+            color = "\x1b[34m";  // blue
+            break;
+        case Level::Info:
+            color = "\x1b[32m";  // green
+            break;
+        case Level::Warn:
+            color = "\x1b[33m";  // yellow
+            break;
+        case Level::Error:
+            color = "\x1b[31m";  // red
+            break;
+        }
         char buffer[MaxMsgSize];
         snprintf(buffer, MaxMsgSize, "%s -> [%s::%s::%u] %s >> %s\n",
                  getLogLevel(level).c_str(),
@@ -258,7 +278,10 @@ namespace Logger {
                  line,
                  currentTime.c_str(),
                  msg.c_str());
-        return buffer;
+        OutputEntity output;
+        output.toFile = buffer;
+        output.toConsole = color + buffer;
+        return output;
     }
 
     LogHandler& LogHandler::getHandler() {
