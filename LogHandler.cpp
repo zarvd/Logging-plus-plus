@@ -5,8 +5,8 @@ namespace Logger {
         isEngineReady(false),
         isCloseEngine(false),
         isStop(true),
-        outputThread(&LogHandler::outputEngine, this),
-        MaxMsgSize(200),
+        outputThread(),
+        MaxMsgSize(300),
         maxBufferSize(50),
         flushFrequency(3),
         logDir(""),
@@ -18,16 +18,6 @@ namespace Logger {
         logWriteBuffer() {
 
     }
-
-    struct LogHandler::LogEntity {
-        Level level;
-        std::string time;
-        std::string message;
-        std::string filename;
-        std::string funcname;
-        unsigned line;
-        std::string logMsg;  // NOTE
-    };
 
     LogHandler::~LogHandler() {
         std::unique_lock<std::mutex> engineLck(engineMtx);
@@ -49,6 +39,7 @@ namespace Logger {
      * it will open a file Stream if it is allowed to write to a log file
      */
     void LogHandler::init() {
+        outputThread = std::thread(&LogHandler::outputEngine, this);
 
         std::lock_guard<std::mutex> logLck(logMtx);
         isStop = false;
@@ -130,14 +121,7 @@ namespace Logger {
                          const unsigned& line) {
         if(level < logLevel) return;
 
-        std::shared_ptr<LogEntity> logMsg = std::make_shared<LogEntity>();
-        logMsg->time = currentTime;
-        logMsg->level = level;
-        logMsg->message = msg;
-        logMsg->filename = file;
-        logMsg->funcname = func;
-        logMsg->line = line;
-        logMsg->logMsg = formatOutput(logMsg);  // NOTE
+        const std::string outputMsg = formatOutput(level, msg, file, func, line);
 
         // it may block
         std::lock_guard<std::mutex> logLck(logMtx);
@@ -146,7 +130,7 @@ namespace Logger {
             throw std::logic_error("logging handler haven't been inited");
         }
 
-        logReadBuffer.push(logMsg);
+        logReadBuffer.push_back(outputMsg);
 
         // notify output thread to output
         if(logReadBuffer.size() >= maxBufferSize) {
@@ -224,21 +208,20 @@ namespace Logger {
             }
 
             while( ! logWriteBuffer.empty()) {
-                std::shared_ptr<LogEntity> logMsg = logWriteBuffer.front();
-                std::string outputMsg = logMsg->logMsg;
+                const std::string& logMsg = logWriteBuffer.front();
 
                 // no need to use mutex protect output configuration
                 // and log stream descriptor
                 // because it cannot be modified when Handler is running
                 if(output.at(Output::CONSOLE)) {
-                    outputToConsole(outputMsg);
+                    outputToConsole(logMsg);
                 }
 
                 if(output.at(Output::FILE)) {
-                    outputToFile(outputMsg);
+                    outputToFile(logMsg);
                 }
 
-                logWriteBuffer.pop();
+                logWriteBuffer.pop_front();
             }
 
             if(output.at(Output::FILE)) {
@@ -264,15 +247,17 @@ namespace Logger {
     /**
      * get formatted output log
      */
-    std::string LogHandler::formatOutput(std::shared_ptr<LogEntity> logMsg) const {
+    std::string LogHandler::formatOutput(const Level& level, const std::string& msg,
+                                         const std::string& file, const std::string& func,
+                                         const unsigned& line) const {
         char buffer[MaxMsgSize];
         snprintf(buffer, MaxMsgSize, "%s -> [%s::%s::%u] %s >> %s\n",
-                 getLogLevel(logMsg->level).c_str(),
-                 logMsg->filename.c_str(),
-                 logMsg->funcname.c_str(),
-                 logMsg->line,
-                 logMsg->time.c_str(),
-                 logMsg->message.c_str());
+                 getLogLevel(level).c_str(),
+                 file.c_str(),
+                 func.c_str(),
+                 line,
+                 currentTime.c_str(),
+                 msg.c_str());
         return buffer;
     }
 

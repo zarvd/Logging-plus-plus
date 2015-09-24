@@ -5,7 +5,7 @@ using logLevel = Logger::Level;
 
 typedef void (*testFunc)();
 
-void mulitThread(int thread) {
+void mulitThread(const int& thread) {
     for(unsigned i = 0; i < 200000; ++ i) {
         Log(logLevel::Info) << "Log test thread" << thread;
     }
@@ -18,14 +18,15 @@ void multiThreadTest() {
         threads[idx] = std::thread(mulitThread, idx);
     }
 
-    for(auto& thread : threads)
-        thread.join();
+    for(unsigned idx = 0; idx < threadCount; ++ idx) {
+        threads[idx].join();
+    }
 }
 
 void singleThreadTest() {
     const unsigned long msgCount = 2000000;
     for(unsigned idx = 0; idx < msgCount; ++ idx) {
-        Log(logLevel::Info) << "Log test";
+        Log(logLevel::Info) << "Single thread log test" << idx;
     }
 }
 
@@ -33,7 +34,11 @@ void countRunTime(const std::string& testName, testFunc func) {
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
     {
-        func();
+        try {
+            func();
+        } catch(const std::exception& e) {
+            std::cout << e.what() << std::endl;
+        }
     }
     end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;

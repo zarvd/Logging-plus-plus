@@ -14,8 +14,6 @@ namespace Logger {
         LogHandler(const LogHandler&) = delete;
         ~LogHandler();
 
-        struct LogEntity;
-
         void init();
 
         // configuration
@@ -61,8 +59,8 @@ namespace Logger {
 
         // log buffer
         // NOTE avoid false sharing
-        alignas(64) std::queue<std::shared_ptr<LogEntity> > logReadBuffer;
-        alignas(64) std::queue<std::shared_ptr<LogEntity> > logWriteBuffer;
+        std::deque<std::string> logReadBuffer;
+        std::deque<std::string> logWriteBuffer;
 
         // method
         void outputEngine();
@@ -70,7 +68,9 @@ namespace Logger {
         void openLogStream();
         void outputToConsole(const std::string&) const;
         void outputToFile(const std::string&);
-        std::string formatOutput(std::shared_ptr<LogEntity>) const;
+        std::string formatOutput(const Level&, const std::string&,
+                                 const std::string&, const std::string&,
+                                 const unsigned&) const;
     };
 }
 

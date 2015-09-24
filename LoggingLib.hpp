@@ -6,7 +6,7 @@
 #include <fstream>
 #include <string>
 #include <map>
-#include <queue>
+#include <deque>
 
 #include <ctime>
 #include <chrono>
