@@ -1,5 +1,6 @@
 #include "LogHandler.hpp"
 
+
 namespace Logger {
     LogHandler::LogHandler() :
         isEngineReady(false),
@@ -35,8 +36,8 @@ namespace Logger {
     }
 
     struct LogHandler::OutputEntity {
-        std::string toConsole;
-        std::string toFile;
+        std::string color;
+        std::string logMsg;
     };
 
     /**
@@ -219,11 +220,11 @@ namespace Logger {
                 // and log stream descriptor
                 // because it cannot be modified when Handler is running
                 if(output.at(Output::CONSOLE)) {
-                    outputToConsole(logMsg.toConsole);
+                    outputToConsole(logMsg.color + logMsg.logMsg);
                 }
 
                 if(output.at(Output::FILE)) {
-                    outputToFile(logMsg.toFile);
+                    outputToFile(logMsg.logMsg);
                 }
 
                 logWriteBuffer.pop_front();
@@ -279,8 +280,8 @@ namespace Logger {
                  currentTime.c_str(),
                  msg.c_str());
         OutputEntity output;
-        output.toFile = buffer;
-        output.toConsole = color + buffer;
+        output.logMsg = buffer;
+        output.color = color;
         return output;
     }
 
