@@ -147,7 +147,7 @@ namespace Logger {
     /**
      * Open a file stream
      */
-    void LogHandler::openLogStream() {
+    void LogHandler::openLogStream() const {
         if(logStream.is_open()) {
             logStream.close();
         }
@@ -246,7 +246,7 @@ namespace Logger {
     /**
      * Print log to log file
      */
-    void LogHandler::outputToFile(const std::string& logMsg) {
+    void LogHandler::outputToFile(const std::string& logMsg) const {
         logStream << logMsg;
     }
 

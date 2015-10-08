@@ -39,8 +39,8 @@ namespace Logger {
         LogHandler();
 
         // running status control
-        std::mutex logMtx;
-        std::mutex engineMtx;
+        mutable std::mutex logMtx;
+        mutable std::mutex engineMtx;
         std::condition_variable logCV;  // condition: logWriteBuffer
         std::condition_variable engineCV;  // condition: isEngineReady
         bool isEngineReady;
@@ -54,7 +54,7 @@ namespace Logger {
         std::chrono::seconds flushFrequency;  // output engine flush buffer frequency
         std::string logDir;
         std::string logFile;
-        std::ofstream logStream;
+        mutable std::ofstream logStream;
         std::string currentTime;
         Level logLevel;  // limit log level
         std::map<Output, bool> output;  // limit output
@@ -67,9 +67,9 @@ namespace Logger {
         // method
         void outputEngine();
         void freshCurrentTime();
-        void openLogStream();
+        void openLogStream() const;
         void outputToConsole(const std::string&) const;
-        void outputToFile(const std::string&);
+        void outputToFile(const std::string&) const;
         OutputEntity formatOutput(const Level&, const std::string&,
                                   const std::string&, const std::string&,
                                   const unsigned&) const;
