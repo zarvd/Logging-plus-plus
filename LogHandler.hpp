@@ -40,11 +40,11 @@ namespace Logger {
 
         // running status control
         mutable std::mutex logMtx;
-        mutable std::mutex engineMtx;
+        mutable std::mutex outputMtx;
         std::condition_variable logCV;  // condition: logWriteBuffer
-        std::condition_variable engineCV;  // condition: isEngineReady
-        bool isEngineReady;
-        bool isCloseEngine;
+        std::condition_variable outputCV;  // condition: isEngineReady
+        bool isOutputReady;
+        bool isCloseOutput;
         bool isStop;
         std::thread outputThread;
 
@@ -65,7 +65,7 @@ namespace Logger {
         std::deque<OutputEntity> logWriteBuffer;
 
         // method
-        void outputEngine();
+        void startOutputThread();
         void freshCurrentTime();
         void openLogStream() const;
         void outputToConsole(const std::string&) const;

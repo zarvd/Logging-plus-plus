@@ -3,8 +3,8 @@
 
 namespace Logger {
     LogHandler::LogHandler() :
-        isEngineReady(false),
-        isCloseEngine(false),
+        isOutputReady(false),
+        isCloseOutput(false),
         isStop(true),
         outputThread(),
         MaxMsgSize(300),
@@ -21,12 +21,12 @@ namespace Logger {
     }
 
     LogHandler::~LogHandler() {
-        std::unique_lock<std::mutex> engineLck(engineMtx);
+        std::unique_lock<std::mutex> outputLck(outputMtx);
 
-        while( ! isEngineReady) {
-            engineCV.wait(engineLck);
+        while( ! isOutputReady) {
+            outputCV.wait(outputLck);
         }
-        isCloseEngine = true;
+        isCloseOutput = true;
 
         outputThread.join();
 
@@ -45,7 +45,7 @@ namespace Logger {
      * it will open a file Stream if it is allowed to write to a log file
      */
     void LogHandler::init() {
-        outputThread = std::thread(&LogHandler::outputEngine, this);
+        outputThread = std::thread(&LogHandler::startOutputThread, this);
 
         std::lock_guard<std::mutex> logLck(logMtx);
         isStop = false;
@@ -192,13 +192,13 @@ namespace Logger {
     /**
      * Another thread for output to file
      */
-    void LogHandler::outputEngine() {
+    void LogHandler::startOutputThread() {
         while(true) {
-            if( ! isEngineReady) {
+            if( ! isOutputReady) {
                 // make sure engine is up
-                std::lock_guard<std::mutex> lck(engineMtx);  // protect isEngineReady
-                isEngineReady = true;
-                engineCV.notify_one();
+                std::lock_guard<std::mutex> lck(outputMtx);  // protect isEngineReady
+                isOutputReady = true;
+                outputCV.notify_one();
             }
 
             {
@@ -207,7 +207,10 @@ namespace Logger {
                 while(logWriteBuffer.empty()) {
                     logCV.wait_for(logLck, flushFrequency);
                     logWriteBuffer.swap(logReadBuffer);
-                    if(isCloseEngine && logWriteBuffer.empty()) exit(0);
+
+                    // close output thread
+                    if(isCloseOutput && logWriteBuffer.empty()) exit(0);
+
                     // fresh time
                     freshCurrentTime();
                 }
