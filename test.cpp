@@ -1,13 +1,16 @@
 #include "Logger.hpp"
 
 using Logger::LoggingHandler;
-using logLevel = Logger::Level;
+using Logger::Level::INFO;
+using Logger::Level::DEBUG;
+using Logger::Level::ERROR;
+using Logger::Level::WARN;
 
 typedef void (*testFunc)();
 
 void mulitThread(const int& thread) {
     for(unsigned i = 0; i < 200000; ++ i) {
-        Log(logLevel::Info) << "Log test thread" << thread;
+        Log(INFO) << "Log test thread" << thread;
     }
 }
 
@@ -26,7 +29,7 @@ void multiThreadTest() {
 void singleThreadTest() {
     const unsigned long msgCount = 2000000;
     for(unsigned idx = 0; idx < msgCount; ++ idx) {
-        Log(logLevel::Info) << "Single thread log test" << idx;
+        Log(INFO) << "Single thread log test" << idx;
     }
 }
 
@@ -52,15 +55,15 @@ void countRunTime(const std::string& testName, testFunc func) {
 void testCreateLog() {
     LoggingHandler.setLogFile("./log/log/log.log");
     LoggingHandler.init();
-    Log(logLevel::Info) << "test" << 1;
+    Log(INFO) << "test" << 1;
 }
 
 int main(void) {
     // LoggingHandler.setOutput(Logger::Output::FILE, false);
-    // LoggingHandler.setOutput(Logger::LogHandler::Output::CONSOLE, false);
-    // LoggingHandler.setLogFile("multi.log");
+    LoggingHandler.setOutput(Logger::LogHandler::Output::CONSOLE, false);
+    LoggingHandler.setLogFile("multi.log");
     // LoggingHandler.setLogFile("single.log");
-    LoggingHandler.setLogLevel(logLevel::Debug);
+    LoggingHandler.setLogLevel(DEBUG);
     LoggingHandler.init();
     countRunTime("multi", &multiThreadTest);
     // countRunTime("single", &singleThreadTest);

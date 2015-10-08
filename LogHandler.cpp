@@ -12,7 +12,7 @@ namespace Logger {
         flushFrequency(3),
         logDir(""),
         logFile("app.log"),
-        logLevel(Level::Info),
+        logLevel(Level::INFO),
         output({{Output::FILE, true},
                 {Output::CONSOLE, true}}),
         logReadBuffer(),
@@ -261,16 +261,16 @@ namespace Logger {
                                          const unsigned& line) const {
         std::string color;
         switch(level) {
-        case Level::Debug:
+        case Level::DEBUG:
             color = "\x1b[34m";  // blue
             break;
-        case Level::Info:
+        case Level::INFO:
             color = "\x1b[32m";  // green
             break;
-        case Level::Warn:
+        case Level::WARN:
             color = "\x1b[33m";  // yellow
             break;
-        case Level::Error:
+        case Level::ERROR:
             color = "\x1b[31m";  // red
             break;
         }
