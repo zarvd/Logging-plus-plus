@@ -1,6 +1,7 @@
 #include "Logger.hpp"
 
 using Logger::LoggingHandler;
+using Logger::Level::TRACE;
 using Logger::Level::INFO;
 using Logger::Level::DEBUG;
 using Logger::Level::ERROR;
@@ -58,14 +59,23 @@ void testCreateLog() {
     Log(INFO) << "test" << 1;
 }
 
+void testLevel() {
+    Log(TRACE) << "test TRACE";
+    Log(DEBUG) << "test DEBUG";
+    Log(INFO) << "test INFO";
+    Log(WARN) << "test WARN";
+    Log(ERROR) << "test ERROR";
+}
+
 int main(void) {
     // LoggingHandler.setOutput(Logger::Output::FILE, false);
-    LoggingHandler.setOutput(Logger::LogHandler::Output::CONSOLE, false);
+    // LoggingHandler.setOutput(Logger::LogHandler::Output::CONSOLE, false);
     LoggingHandler.setLogFile("multi.log");
     // LoggingHandler.setLogFile("single.log");
-    LoggingHandler.setLogLevel(DEBUG);
+    LoggingHandler.setLogLevel(TRACE);
     LoggingHandler.init();
-    countRunTime("multi", &multiThreadTest);
+    testLevel();
+    // countRunTime("multi", &multiThreadTest);
     // countRunTime("single", &singleThreadTest);
     return 0;
 }

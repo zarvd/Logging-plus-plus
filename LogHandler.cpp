@@ -263,6 +263,9 @@ LogHandler::OutputEntity LogHandler::formatOutput(const Level& level, const std:
                                                   const unsigned& line) const {
     std::string color;
     switch(level) {
+    case Level::TRACE:
+        color = "\x1b[35m";  // magenta
+        break;
     case Level::DEBUG:
         color = "\x1b[34m";  // blue
         break;

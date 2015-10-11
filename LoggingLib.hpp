@@ -25,13 +25,14 @@ namespace Logger {
 /**
  * Log msg level
  */
-enum class Level {DEBUG = 0, INFO = 1, WARN = 2, ERROR = 3};
+enum class Level {TRACE = 0, DEBUG = 1, INFO = 2, WARN = 3, ERROR = 4};
 
 /**
  * Transfer Log Level to std::string
  */
 inline std::string getLogLevel(const Level& level) {
     switch(level) {
+    case Level::TRACE: return "TRACE";
     case Level::DEBUG: return "DEBUG";
     case Level::INFO: return "INFO";
     case Level::WARN: return "WARN";
