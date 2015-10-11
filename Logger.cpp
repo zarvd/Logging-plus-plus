@@ -2,5 +2,5 @@
 
 
 namespace Logger {
-    LogHandler& LoggingHandler = LogHandler::getHandler();  // Global logging handler
+LogHandler& LoggingHandler = LogHandler::getHandler();  // Global logging handler
 }

@@ -4,7 +4,7 @@
 #include "LogStream.hpp"
 
 namespace Logger {
-    extern LogHandler& LoggingHandler;  // Global logging handler
+extern LogHandler& LoggingHandler;  // Global logging handler
 }
 
 #define Log(level)                                              \
