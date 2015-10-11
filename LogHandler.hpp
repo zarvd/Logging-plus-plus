@@ -8,8 +8,8 @@ namespace Logger {
 /**
  * Log handler
  */
-class LogHandler final {
- public:
+class LogHandler {
+public:
 
     LogHandler(const LogHandler&) = delete;
     ~LogHandler();
@@ -25,20 +25,30 @@ class LogHandler final {
     void setLogLevel(const Level&);
     void setFlushFrequency(const unsigned&);
     void setMaxBufferSize(const unsigned&);
-
     // main method
-    void log(const Level&, const std::string&, const std::string&, const std::string&, const unsigned&);
-
+    void log(const Level&,
+             const std::string& msg,
+             const std::string& file,
+             const std::string& func,
+             const unsigned& line);
     // other helpers
     static bool isLevelAvailable(const Level&);
-
     // return a static global log handler, singleton
     static LogHandler& getHandler();
 
- private:
+private:
     LogHandler();
+    void startOutputThread();
+    void freshCurrentTime();
+    void openLogStream() const;
+    void outputToConsole(const std::string&) const;
+    void outputToFile(const std::string&) const;
+    OutputEntity formatOutput(const Level&, const std::string&,
+                              const std::string&, const std::string&,
+                              const unsigned&) const;
 
     // running status control
+    bool isInited;
     mutable std::mutex logMtx;
     mutable std::mutex outputMtx;
     std::condition_variable logCV;  // condition: logWriteBuffer
@@ -63,16 +73,6 @@ class LogHandler final {
     // NOTE avoid false sharing
     std::deque<OutputEntity> logReadBuffer;
     std::deque<OutputEntity> logWriteBuffer;
-
-    // method
-    void startOutputThread();
-    void freshCurrentTime();
-    void openLogStream() const;
-    void outputToConsole(const std::string&) const;
-    void outputToFile(const std::string&) const;
-    OutputEntity formatOutput(const Level&, const std::string&,
-                              const std::string&, const std::string&,
-                              const unsigned&) const;
 };
 }
 

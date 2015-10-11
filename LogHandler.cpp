@@ -3,6 +3,7 @@
 
 namespace Logger {
 LogHandler::LogHandler() :
+    isInited(false),
     isOutputReady(false),
     isCloseOutput(false),
     isStop(true),
@@ -54,6 +55,7 @@ void LogHandler::init() {
     if(output.at(Output::FILE)) {
         openLogStream();
     }
+    isInited = true;
 }
 
 /**
@@ -125,7 +127,7 @@ bool LogHandler::isLevelAvailable(const Logger::Level& level) {
 void LogHandler::log(const Level& level, const std::string& msg,
                      const std::string& file, const std::string& func,
                      const unsigned& line) {
-    if(level < logLevel) return;
+    if( ! isInited || level < logLevel) return;
 
     const auto output = formatOutput(level, msg, file, func, line);
 
