@@ -10,7 +10,7 @@ Logging plus plus implements in C++
 #### Output
 - C++ stream style
 ```c++
-Log(logLevel::Info) << "Hello" << " Gallon" << 1 << 2.1243;
+Log(INFO) << "Hello" << " Gallon" << 1 << 2.1243;
 ```
 `
 $ INFO -> [test.cpp::main::71] Sun Sep 20 09:32:42 2015 >> Hello Gallon12.124300
@@ -21,12 +21,13 @@ $ INFO -> [test.cpp::main::71] Sun Sep 20 09:32:42 2015 >> Hello Gallon12.124300
 #include "logger.hpp"
 
 using Logger::LoggingHandler;
-using logLevel = Logger::Level;
+using Logger::Level::INFO;
+using Logger::Level::DEBUG;
+using Logger::Level::ERROR;
+using Logger::Level::WARN;
 
 int main(void) {
     LoggingHandler.init();
-    for(unsigned i = 1; i < 100000; ++ i) {
-        Log(logLevel::Info) << "Hello " << 1 << 2.1243;  // c++ stream style
-    }
+    Log(INFO) << "Hello " << 1 << 2.1243;  // c++ stream style
 }
 ```
