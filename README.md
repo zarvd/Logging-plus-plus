@@ -12,8 +12,9 @@ Logging plus plus implements in C++
 mkdir build
 cd build
 cmake ../
-make install
+sudo make install
 ```
+
 #### Output
 
 - C++ stream style
