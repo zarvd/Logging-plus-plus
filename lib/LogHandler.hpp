@@ -12,6 +12,7 @@ class LogHandler {
 public:
 
     LogHandler(const LogHandler&) = delete;
+    LogHandler & operator=(const LogHandler&) = delete;
     ~LogHandler();
 
     struct OutputEntity;

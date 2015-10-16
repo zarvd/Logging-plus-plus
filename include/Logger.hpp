@@ -1,10 +1,10 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include "LogStream.hpp"
+#include "../LogStream.hpp"
 
 namespace Logger {
-extern LogHandler& LoggingHandler;  // Global logging handler
+LogHandler& logger = LogHandler::getHandler();  // Global logging handler
 }
 
 #define Log(level)                                              \

@@ -1,6 +1,6 @@
-CC = clang++
+CXX = clang++
 FLAG = -Wall -std=c++11 -g -O2 -pthread
-SRCS = $(wildcard *.cpp)
+SRCS = $(wildcard src/*.cpp)
 OBJS = $(SRCS:.cpp=.o)
 OBJS_WITH_NO_TEST = $(filter-out test.o, $(OBJS))
 TEST = test
@@ -10,14 +10,17 @@ TEST = test
 all: test
 
 $(OBJS):
-	$(CC) $(FLAG) -c $(addsuffix .cpp, $(basename $@))
+	$(CXX) $(FLAG) -c $(addsuffix .cpp, $(basename $@)) -o $@
+
+staticLib: $(OBJS)
+	ar rcs libLogger.a $(OBJS)
 
 prod: $(OBJS)
 	mkdir -p ./prod
 	ld -r $(OBJS_WITH_NO_TEST) -o ./prod/Logger.o
 
 test: $(OBJS)
-	$(CC) $(FLAG) $(OBJS) -lm -o $(TEST)
+	$(CXX) $(FLAG) $(OBJS) -lm -o $(TEST)
 
 clean:
 	-rm *.o $(TEST)

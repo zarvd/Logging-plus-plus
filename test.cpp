@@ -1,6 +1,6 @@
-#include "Logger.hpp"
+#include "include/Logger.hpp"
 
-using Logger::LoggingHandler;
+using Logger::logger;
 using Logger::Level::TRACE;
 using Logger::Level::INFO;
 using Logger::Level::DEBUG;
@@ -54,8 +54,8 @@ void countRunTime(const std::string& testName, testFunc func) {
 }
 
 void testCreateLog() {
-    LoggingHandler.setLogFile("./log/log/log.log");
-    LoggingHandler.init();
+    logger.setLogFile("./log/log/log.log");
+    logger.init();
     Log(INFO) << "test" << 1;
 }
 
@@ -70,10 +70,10 @@ void testLevel() {
 int main(void) {
     // LoggingHandler.setOutput(Logger::Output::FILE, false);
     // LoggingHandler.setOutput(Logger::LogHandler::Output::CONSOLE, false);
-    LoggingHandler.setLogFile("multi.log");
+    logger.setLogFile("multi.log");
     // LoggingHandler.setLogFile("single.log");
-    LoggingHandler.setLogLevel(TRACE);
-    LoggingHandler.init();
+    logger.setLogLevel(TRACE);
+    logger.init();
     testLevel();
     // countRunTime("multi", &multiThreadTest);
     // countRunTime("single", &singleThreadTest);
