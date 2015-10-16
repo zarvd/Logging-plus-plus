@@ -37,6 +37,7 @@ inline std::string getLogLevel(const Level& level) {
     case Level::INFO: return "INFO";
     case Level::WARN: return "WARN";
     case Level::ERROR: return "ERROR";
+    default: throw;
     }
 }
 

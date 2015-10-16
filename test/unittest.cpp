@@ -1,4 +1,4 @@
-#include <logger/Logger.hpp>  // install logger
+#include "../include/Logger.hpp"
 
 using Logger::logger;
 using Logger::Level::TRACE;
@@ -10,9 +10,6 @@ using Output = Logger::LogHandler::Output;
 
 
 int main(void) {
-    logger.setOutput(Output::FILE, false);
     logger.init();
-
-    Log(INFO) << "TEST Logging";
     return 0;
 }

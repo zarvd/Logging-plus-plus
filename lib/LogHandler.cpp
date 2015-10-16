@@ -157,7 +157,7 @@ void LogHandler::openLogStream() const {
     // test log directory and create directory if neccesary
     if(access(logDir.c_str(), F_OK) != 0 || access(logDir.c_str(), W_OK) != 0) {
         std::string dir;
-        for(unsigned short idx = 0; idx < logDir.length(); ++ idx) {
+        for(std::size_t idx = 0; idx < logDir.length(); ++ idx) {
             // create new directory recusively
             const char& curChar = logDir[idx];
 
