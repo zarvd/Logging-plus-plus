@@ -1,4 +1,4 @@
-#include "LogHandler.hpp"
+#include "../include/LogHandler.hpp"
 
 
 namespace Logger {

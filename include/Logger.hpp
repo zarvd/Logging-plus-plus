@@ -1,7 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include "../LogStream.hpp"
+#include "LogStream.hpp"
 
 namespace Logger {
 LogHandler& logger = LogHandler::getHandler();  // Global logging handler

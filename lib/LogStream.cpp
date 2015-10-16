@@ -1,4 +1,4 @@
-#include "LogStream.hpp"
+#include "../include/LogStream.hpp"
 
 
 namespace Logger {

@@ -1,4 +1,6 @@
-#include "include/Logger.hpp"
+#include <logger/Logger.hpp>
+#include <functional>
+
 
 using Logger::logger;
 using Logger::Level::TRACE;
@@ -7,7 +9,8 @@ using Logger::Level::DEBUG;
 using Logger::Level::ERROR;
 using Logger::Level::WARN;
 
-typedef void (*testFunc)();
+using testFunc = std::function<void()>;
+
 
 void mulitThread(const int& thread) {
     for(unsigned i = 0; i < 200000; ++ i) {
