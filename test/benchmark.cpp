@@ -2,12 +2,12 @@
 #include <functional>
 
 
-using Logger::logger;
 using Logger::Level::TRACE;
 using Logger::Level::INFO;
 using Logger::Level::DEBUG;
 using Logger::Level::ERROR;
 using Logger::Level::WARN;
+auto & logger = Logger::LogHandler::getHandler();
 
 using testFunc = std::function<void()>;
 
@@ -54,12 +54,6 @@ void countRunTime(const std::string& testName, testFunc func) {
               << " Run Time: "
               << elapsed_seconds.count()
               << std::endl;
-}
-
-void testCreateLog() {
-    logger.setLogFile("./log/log/log.log");
-    logger.init();
-    Log(INFO) << "test" << 1;
 }
 
 void testLevel() {

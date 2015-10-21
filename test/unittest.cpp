@@ -1,6 +1,6 @@
 #include "../include/Logger.hpp"
 
-using Logger::logger;
+auto & logger = Logger::LogHandler::getHandler();
 using Logger::Level::TRACE;
 using Logger::Level::INFO;
 using Logger::Level::DEBUG;
@@ -11,5 +11,6 @@ using Output = Logger::LogHandler::Output;
 
 int main(void) {
     logger.init();
+    Log(INFO) << "Hello, world!";
     return 0;
 }

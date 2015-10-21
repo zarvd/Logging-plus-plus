@@ -29,7 +29,7 @@ $ INFO -> [test.cpp::main::71] Sun Sep 20 09:32:42 2015 >> Hello Gallon12.124300
 ```c++
 #include <logger/Logger.hpp>
 
-using Logger::logger;
+auto & logger = Logger::LogHandler::getHandler();
 using Logger::Level::INFO;
 using Logger::Level::DEBUG;
 using Logger::Level::ERROR;
