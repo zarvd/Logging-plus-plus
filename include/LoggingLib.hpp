@@ -1,25 +1,8 @@
 #ifndef LOGGINGLIB_H
 #define LOGGINGLIB_H
 
-#include <iostream>
-
-#include <fstream>
 #include <string>
-#include <map>
 #include <deque>
-
-#include <ctime>
-#include <chrono>
-
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-
-#include <exception>
-
-#include <unistd.h>
-#include <sys/stat.h>
-
 
 namespace Logger {
 /**
@@ -30,7 +13,8 @@ enum class Level {TRACE = 0, DEBUG = 1, INFO = 2, WARN = 3, ERROR = 4};
 /**
  * Transfer Log Level to std::string
  */
-inline std::string getLogLevel(const Level& level) {
+inline std::string
+getLogLevel(const Level & level) {
     switch(level) {
     case Level::TRACE: return "TRACE";
     case Level::DEBUG: return "DEBUG";
@@ -44,7 +28,8 @@ inline std::string getLogLevel(const Level& level) {
 /**
  * Separate path into diretory and filename
  */
-inline void pathToFile(const std::string& path, std::string& dir, std::string& filename) {
+inline void
+pathToFile(const std::string & path, std::string & dir, std::string & filename) {
     std::size_t foundPos = path.find_last_of("/");
     if(foundPos != std::string::npos) {
         dir = path.substr(0, foundPos);
@@ -58,7 +43,8 @@ inline void pathToFile(const std::string& path, std::string& dir, std::string& f
 /**
  * Combine diretory and filename
  */
-inline std::string dirAndFileToPath(const std::string& dir, const std::string& filename) {
+inline std::string
+dirAndFileToPath(const std::string & dir, const std::string & filename) {
     if(dir == "") {
         return "./" + filename;
     } else if(dir.back() == '/') {
@@ -67,6 +53,7 @@ inline std::string dirAndFileToPath(const std::string& dir, const std::string& f
         return dir + "/" + filename;
     }
 }
+
 }
 
 #endif /* LOGGINGLIB_H */

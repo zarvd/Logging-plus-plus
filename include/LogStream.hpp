@@ -3,26 +3,28 @@
 
 #include "LogHandler.hpp"
 
+
 namespace Logger {
 /**
  * Log Stream
  */
 class LogStream final {
- public:
+public:
     LogStream() = delete;
-    LogStream(const Level&, const std::string&, const std::string&, const unsigned&);
-    LogStream(const LogStream&) = delete;
+    LogStream(const Level &, const std::string &, const std::string &, const unsigned);
+    LogStream(const LogStream &) = delete;
+    LogStream & operator=(const LogStream &) = delete;
     ~LogStream();
 
-    template<typename T> LogStream& operator<<(const T& msg) {
+    template<typename T> LogStream & operator<<(const T & msg) {
         logMsg += std::to_string(msg);
         return *this;
     }
-    LogStream& operator<<(const std::string&);
-    LogStream& operator<<(const char *);
+    LogStream & operator<<(const std::string &);
+    LogStream & operator<<(const char *);
 
- private:
-    LogHandler& logHandler;
+private:
+    LogHandler & logHandler;
     Level logLevel;
     std::string filename;
     std::string funcname;

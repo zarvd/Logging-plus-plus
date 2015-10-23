@@ -66,13 +66,13 @@ void testLevel() {
 
 int main(void) {
     // LoggingHandler.setOutput(Logger::Output::FILE, false);
-    // LoggingHandler.setOutput(Logger::LogHandler::Output::CONSOLE, false);
+    logger.setOutput(Logger::LogHandler::Output::CONSOLE, false);
     logger.setLogFile("multi.log");
     // LoggingHandler.setLogFile("single.log");
     logger.setLogLevel(TRACE);
     logger.init();
-    testLevel();
-    // countRunTime("multi", &multiThreadTest);
-    // countRunTime("single", &singleThreadTest);
+    // testLevel();
+    countRunTime("multi", &multiThreadTest);
+    countRunTime("single", &singleThreadTest);
     return 0;
 }

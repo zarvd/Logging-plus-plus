@@ -1,6 +1,13 @@
 #ifndef LOGHANDLER_H
 #define LOGHANDLER_H
 
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <deque>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
 #include "LoggingLib.hpp"
 
 
@@ -10,9 +17,8 @@ namespace Logger {
  */
 class LogHandler {
 public:
-
-    LogHandler(const LogHandler&) = delete;
-    LogHandler & operator=(const LogHandler&) = delete;
+    LogHandler(const LogHandler &) = delete;
+    LogHandler & operator=(const LogHandler &) = delete;
     ~LogHandler();
 
     struct OutputEntity;
@@ -21,32 +27,32 @@ public:
 
     // configuration
     enum class Output {FILE, CONSOLE};
-    void setOutput(const Output&, const bool&);
-    void setLogFile(const std::string&);
-    void setLogLevel(const Level&);
-    void setFlushFrequency(const unsigned&);
-    void setMaxBufferSize(const unsigned&);
+    void setOutput(const Output &, const bool);
+    void setLogFile(const std::string &);
+    void setLogLevel(const Level &);
+    void setFlushFrequency(const unsigned);
+    void setMaxBufferSize(const unsigned);
     // main method
-    void log(const Level&,
-             const std::string& msg,
-             const std::string& file,
-             const std::string& func,
-             const unsigned& line);
+    void log(const Level &,
+             const std::string & msg,
+             const std::string & file,
+             const std::string & func,
+             const unsigned line);
     // other helpers
-    static bool isLevelAvailable(const Level&);
+    static bool isLevelAvailable(const Level &);
     // return a static global log handler, singleton
-    static LogHandler& getHandler();
+    static LogHandler & getHandler();
 
 private:
     LogHandler();
     void startOutputThread();
     void freshCurrentTime();
     void openLogStream() const;
-    void outputToConsole(const std::string&) const;
-    void outputToFile(const std::string&) const;
-    OutputEntity formatOutput(const Level&, const std::string&,
-                              const std::string&, const std::string&,
-                              const unsigned&) const;
+    void outputToConsole(const std::string &) const;
+    void outputToFile(const std::string &) const;
+    OutputEntity formatOutput(const Level & level, const std::string & msg,
+                              const std::string & file, const std::string & func,
+                              const unsigned line) const;
 
     // running status control
     bool isInited;

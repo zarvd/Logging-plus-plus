@@ -1,3 +1,8 @@
+#include <ctime>
+#include <chrono>
+#include <exception>
+#include <unistd.h>
+#include <sys/stat.h>
 #include "../include/LogHandler.hpp"
 
 
@@ -45,7 +50,8 @@ struct LogHandler::OutputEntity {
  * Before using a logger, you need to initialize it.
  * it will open a file Stream if it is allowed to write to a log file
  */
-void LogHandler::init() {
+void
+LogHandler::init() {
     outputThread = std::thread(&LogHandler::startOutputThread, this);
 
     std::lock_guard<std::mutex> logLck(logMtx);
@@ -61,7 +67,8 @@ void LogHandler::init() {
 /**
  * Setting output filter
  */
-void LogHandler::setOutput(const Output& output, const bool& isAllowed) {
+void
+LogHandler::setOutput(const Output & output, bool isAllowed) {
     std::lock_guard<std::mutex> lck(logMtx);
     if( ! isStop) return;  // unable to modify when running
     switch(output) {
@@ -80,7 +87,8 @@ void LogHandler::setOutput(const Output& output, const bool& isAllowed) {
 /**
  * Setting log file and path, and it will set isWriteToFile to true
  */
-void LogHandler::setLogFile(const std::string& logPath) {
+void
+LogHandler::setLogFile(const std::string & logPath) {
     std::lock_guard<std::mutex> lck(logMtx);
     if( ! isStop) return;
 
@@ -96,37 +104,43 @@ void LogHandler::setLogFile(const std::string& logPath) {
 /**
  * Setting log level
  */
-void LogHandler::setLogLevel(const Level& level) {
+void
+LogHandler::setLogLevel(const Level & level) {
     std::lock_guard<std::mutex> lck(logMtx);
     if( ! isStop) return;
 
     logLevel = level;
 }
 
-void LogHandler::setFlushFrequency(const unsigned& fre) {
+void
+LogHandler::setFlushFrequency(const unsigned fre) {
+    // FIXME more precisely
     std::lock_guard<std::mutex> lck(logMtx);
     if( ! isStop) return;
 
     flushFrequency = std::chrono::seconds(fre);
 }
 
-void LogHandler::setMaxBufferSize(const unsigned& size) {
+void
+LogHandler::setMaxBufferSize(const unsigned size) {
     std::lock_guard<std::mutex> lck(logMtx);
     if( ! isStop) return;
 
     maxBufferSize = size;
 }
 
-bool LogHandler::isLevelAvailable(const Logger::Level& level) {
+bool
+LogHandler::isLevelAvailable(const Logger::Level & level) {
     return level >= getHandler().logLevel;
 }
 
 /**
  * Log operation
  */
-void LogHandler::log(const Level& level, const std::string& msg,
-                     const std::string& file, const std::string& func,
-                     const unsigned& line) {
+void
+LogHandler::log(const Level & level, const std::string & msg,
+                const std::string & file, const std::string & func,
+                const unsigned line) {
     if( ! isInited || level < logLevel) return;
 
     const auto output = formatOutput(level, msg, file, func, line);
@@ -149,7 +163,8 @@ void LogHandler::log(const Level& level, const std::string& msg,
 /**
  * Open a file stream
  */
-void LogHandler::openLogStream() const {
+void
+LogHandler::openLogStream() const {
     if(logStream.is_open()) {
         logStream.close();
     }
@@ -159,7 +174,7 @@ void LogHandler::openLogStream() const {
         std::string dir;
         for(std::size_t idx = 0; idx < logDir.length(); ++ idx) {
             // create new directory recusively
-            const char& curChar = logDir[idx];
+            const char & curChar = logDir[idx];
 
             // get current directory
             if(curChar == '/') {
@@ -184,7 +199,8 @@ void LogHandler::openLogStream() const {
     logStream.open(dirAndFileToPath(logDir, logFile), std::ofstream::out | std::ofstream::app);
 }
 
-void LogHandler::freshCurrentTime() {
+void
+LogHandler::freshCurrentTime() {
     std::time_t now;
     std::time(&now);
     currentTime = std::ctime(&now);
@@ -194,7 +210,8 @@ void LogHandler::freshCurrentTime() {
 /**
  * Another thread for output to file
  */
-void LogHandler::startOutputThread() {
+void
+LogHandler::startOutputThread() {
     while(true) {
         if( ! isOutputReady) {
             // make sure engine is up
@@ -218,24 +235,27 @@ void LogHandler::startOutputThread() {
             }
         }
 
-        while( ! logWriteBuffer.empty()) {
-            const auto& logMsg = logWriteBuffer.front();
-
+        std::string toConsole;
+        std::string toFile;
+        for(const auto & logMsg : logWriteBuffer) {
             // no need to use mutex protect output configuration
             // and log stream descriptor
             // because it cannot be modified when Handler is running
             if(output.at(Output::CONSOLE)) {
-                outputToConsole(logMsg.color + logMsg.logMsg);
+                toConsole += logMsg.color + logMsg.logMsg;
             }
 
             if(output.at(Output::FILE)) {
-                outputToFile(logMsg.logMsg);
+                toFile += logMsg.logMsg;
             }
-
-            logWriteBuffer.pop_front();
+        }
+        logWriteBuffer.clear();
+        if(output.at(Output::CONSOLE)) {
+            outputToConsole(toConsole);
         }
 
         if(output.at(Output::FILE)) {
+            outputToFile(toFile);
             logStream << std::flush;
         }
     }
@@ -244,23 +264,26 @@ void LogHandler::startOutputThread() {
 /**
  * Print log to console
  */
-void LogHandler::outputToConsole(const std::string& logMsg) const {
+void
+LogHandler::outputToConsole(const std::string & logMsg) const {
     std::cout << logMsg;
 }
 
 /**
  * Print log to log file
  */
-void LogHandler::outputToFile(const std::string& logMsg) const {
+void
+LogHandler::outputToFile(const std::string & logMsg) const {
     logStream << logMsg;
 }
 
 /**
  * get formatted output log
  */
-LogHandler::OutputEntity LogHandler::formatOutput(const Level& level, const std::string& msg,
-                                                  const std::string& file, const std::string& func,
-                                                  const unsigned& line) const {
+LogHandler::OutputEntity
+LogHandler::formatOutput(const Level & level, const std::string & msg,
+                         const std::string & file, const std::string & func,
+                         const unsigned line) const {
     std::string color;
     switch(level) {
     case Level::TRACE:
@@ -293,7 +316,8 @@ LogHandler::OutputEntity LogHandler::formatOutput(const Level& level, const std:
     return output;
 }
 
-LogHandler& LogHandler::getHandler() {
+LogHandler &
+LogHandler::getHandler() {
     static LogHandler instance;
     return instance;
 }
