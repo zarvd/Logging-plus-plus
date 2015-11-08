@@ -238,9 +238,6 @@ LogHandler::startOutputThread() {
         std::string toConsole;
         std::string toFile;
         for(const auto & logMsg : logWriteBuffer) {
-            // no need to use mutex protect output configuration
-            // and log stream descriptor
-            // because it cannot be modified when Handler is running
             if(output.at(Output::CONSOLE)) {
                 toConsole += logMsg.color + logMsg.logMsg;
             }

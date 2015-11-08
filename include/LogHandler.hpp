@@ -77,7 +77,6 @@ private:
     std::map<Output, bool> output;  // limit output
 
     // log buffer
-    // NOTE avoid false sharing
     std::deque<OutputEntity> logReadBuffer;
     std::deque<OutputEntity> logWriteBuffer;
 };
