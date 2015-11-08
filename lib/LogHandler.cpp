@@ -5,31 +5,27 @@
 #include <sys/stat.h>
 #include "../include/LogHandler.hpp"
 
-
 namespace Logger {
-LogHandler::LogHandler() :
-    isInited(false),
-    isOutputReady(false),
-    isCloseOutput(false),
-    isStop(true),
-    outputThread(),
-    MaxMsgSize(300),
-    maxBufferSize(50),
-    flushFrequency(3),
-    logDir(""),
-    logFile("app.log"),
-    logLevel(Level::INFO),
-    output({{Output::FILE, true},
-            {Output::CONSOLE, true}}),
-    logReadBuffer(),
-    logWriteBuffer() {
-
-}
+LogHandler::LogHandler()
+    : isInited(false),
+      isOutputReady(false),
+      isCloseOutput(false),
+      isStop(true),
+      outputThread(),
+      MaxMsgSize(300),
+      maxBufferSize(50),
+      flushFrequency(3),
+      logDir(""),
+      logFile("app.log"),
+      logLevel(Level::INFO),
+      output({{Output::FILE, true}, {Output::CONSOLE, true}}),
+      logReadBuffer(),
+      logWriteBuffer() {}
 
 LogHandler::~LogHandler() {
     std::unique_lock<std::mutex> outputLck(outputMtx);
 
-    while( ! isOutputReady) {
+    while(!isOutputReady) {
         outputCV.wait(outputLck);
     }
     isCloseOutput = true;
@@ -56,7 +52,7 @@ LogHandler::init() {
 
     std::lock_guard<std::mutex> logLck(logMtx);
     isStop = false;
-    freshCurrentTime();  // fresh time before logging
+    freshCurrentTime(); // fresh time before logging
 
     if(output.at(Output::FILE)) {
         openLogStream();
@@ -70,10 +66,10 @@ LogHandler::init() {
 void
 LogHandler::setOutput(const Output & output, bool isAllowed) {
     std::lock_guard<std::mutex> lck(logMtx);
-    if( ! isStop) return;  // unable to modify when running
+    if(!isStop) return; // unable to modify when running
     switch(output) {
     case Output::FILE:
-        if( ! isAllowed && logStream.is_open()) {
+        if(!isAllowed && logStream.is_open()) {
             logStream.close();
         }
         this->output.at(Output::FILE) = isAllowed;
@@ -90,7 +86,7 @@ LogHandler::setOutput(const Output & output, bool isAllowed) {
 void
 LogHandler::setLogFile(const std::string & logPath) {
     std::lock_guard<std::mutex> lck(logMtx);
-    if( ! isStop) return;
+    if(!isStop) return;
 
     if(logStream.is_open()) {
         logStream.close();
@@ -107,7 +103,7 @@ LogHandler::setLogFile(const std::string & logPath) {
 void
 LogHandler::setLogLevel(const Level & level) {
     std::lock_guard<std::mutex> lck(logMtx);
-    if( ! isStop) return;
+    if(!isStop) return;
 
     logLevel = level;
 }
@@ -116,7 +112,7 @@ void
 LogHandler::setFlushFrequency(const unsigned fre) {
     // FIXME more precisely
     std::lock_guard<std::mutex> lck(logMtx);
-    if( ! isStop) return;
+    if(!isStop) return;
 
     flushFrequency = std::chrono::seconds(fre);
 }
@@ -124,7 +120,7 @@ LogHandler::setFlushFrequency(const unsigned fre) {
 void
 LogHandler::setMaxBufferSize(const unsigned size) {
     std::lock_guard<std::mutex> lck(logMtx);
-    if( ! isStop) return;
+    if(!isStop) return;
 
     maxBufferSize = size;
 }
@@ -141,7 +137,7 @@ void
 LogHandler::log(const Level & level, const std::string & msg,
                 const std::string & file, const std::string & func,
                 const unsigned line) {
-    if( ! isInited || level < logLevel) return;
+    if(!isInited || level < logLevel) return;
 
     const auto output = formatOutput(level, msg, file, func, line);
 
@@ -172,16 +168,17 @@ LogHandler::openLogStream() const {
     // test log directory and create directory if neccesary
     if(access(logDir.c_str(), F_OK) != 0 || access(logDir.c_str(), W_OK) != 0) {
         std::string dir;
-        for(std::size_t idx = 0; idx < logDir.length(); ++ idx) {
+        for(std::size_t idx = 0; idx < logDir.length(); ++idx) {
             // create new directory recusively
             const char & curChar = logDir[idx];
 
             // get current directory
             if(curChar == '/') {
-                dir = logDir.substr(0, idx);  // get new directory path
+                dir = logDir.substr(0, idx); // get new directory path
             } else if(idx + 1 == logDir.length()) {
                 dir = logDir;
-            } else continue;
+            } else
+                continue;
 
             struct stat fileStat;
             if(stat(dir.c_str(), &fileStat) < 0) {
@@ -190,13 +187,13 @@ LogHandler::openLogStream() const {
                     throw std::runtime_error("Cannot create directory");
                 }
             }
-            if( ! S_ISDIR(fileStat.st_mode)) {
+            if(!S_ISDIR(fileStat.st_mode)) {
                 throw std::runtime_error("Directory error");
             }
-
         }
     }
-    logStream.open(dirAndFileToPath(logDir, logFile), std::ofstream::out | std::ofstream::app);
+    logStream.open(dirAndFileToPath(logDir, logFile),
+                   std::ofstream::out | std::ofstream::app);
 }
 
 void
@@ -213,16 +210,17 @@ LogHandler::freshCurrentTime() {
 void
 LogHandler::startOutputThread() {
     while(true) {
-        if( ! isOutputReady) {
+        if(!isOutputReady) {
             // make sure engine is up
-            std::lock_guard<std::mutex> lck(outputMtx);  // protect isEngineReady
+            std::lock_guard<std::mutex> lck(outputMtx); // protect isEngineReady
             isOutputReady = true;
             outputCV.notify_one();
         }
 
         {
             // get write buffer
-            std::unique_lock<std::mutex> logLck(logMtx);  // protect logReadBuffer
+            std::unique_lock<std::mutex> logLck(
+                logMtx); // protect logReadBuffer
             while(logWriteBuffer.empty()) {
                 logCV.wait_for(logLck, flushFrequency);
                 logWriteBuffer.swap(logReadBuffer);
@@ -284,29 +282,25 @@ LogHandler::formatOutput(const Level & level, const std::string & msg,
     std::string color;
     switch(level) {
     case Level::TRACE:
-        color = "\x1b[35m";  // magenta
+        color = "\x1b[35m"; // magenta
         break;
     case Level::DEBUG:
-        color = "\x1b[34m";  // blue
+        color = "\x1b[34m"; // blue
         break;
     case Level::INFO:
-        color = "\x1b[32m";  // green
+        color = "\x1b[32m"; // green
         break;
     case Level::WARN:
-        color = "\x1b[33m";  // yellow
+        color = "\x1b[33m"; // yellow
         break;
     case Level::ERROR:
-        color = "\x1b[31m";  // red
+        color = "\x1b[31m"; // red
         break;
     }
     char buffer[MaxMsgSize];
     snprintf(buffer, MaxMsgSize, "%s -> [%s::%s::%u] %s >> %s\n",
-             getLogLevel(level).c_str(),
-             file.c_str(),
-             func.c_str(),
-             line,
-             currentTime.c_str(),
-             msg.c_str());
+             getLogLevel(level).c_str(), file.c_str(), func.c_str(), line,
+             currentTime.c_str(), msg.c_str());
     OutputEntity output;
     output.logMsg = buffer;
     output.color = color;
