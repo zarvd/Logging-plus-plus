@@ -1,14 +1,13 @@
+#include <iostream>
 #include <ctime>
 #include <chrono>
-#include <exception>
 #include <unistd.h>
 #include <sys/stat.h>
 #include "../include/LogHandler.hpp"
 
 namespace Logger {
 LogHandler::LogHandler()
-    : isInited(false),
-      isOutputReady(false),
+    : isOutputReady(false),
       isCloseOutput(false),
       isStop(true),
       outputThread(),
@@ -57,7 +56,6 @@ LogHandler::init() {
     if(output.at(Output::FILE)) {
         openLogStream();
     }
-    isInited = true;
 }
 
 /**
@@ -137,7 +135,7 @@ void
 LogHandler::log(const Level & level, const std::string & msg,
                 const std::string & file, const std::string & func,
                 const unsigned line) {
-    if(!isInited || level < logLevel) return;
+    if(isStop || level < logLevel) return;
 
     const auto output = formatOutput(level, msg, file, func, line);
 
@@ -183,7 +181,6 @@ LogHandler::openLogStream() const {
             struct stat fileStat;
             if(stat(dir.c_str(), &fileStat) < 0) {
                 if(mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) < 0) {
-                    std::cout << dir << std::endl;
                     throw std::runtime_error("Cannot create directory");
                 }
             }

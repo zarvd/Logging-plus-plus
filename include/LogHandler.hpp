@@ -1,7 +1,6 @@
 #ifndef LOGHANDLER_H
 #define LOGHANDLER_H
 
-#include <iostream>
 #include <fstream>
 #include <map>
 #include <deque>
@@ -52,7 +51,6 @@ private:
                               const unsigned line) const;
 
     // running status control
-    bool isInited;
     mutable std::mutex logMtx;
     mutable std::mutex outputMtx;
     std::condition_variable logCV;    // condition: logWriteBuffer
