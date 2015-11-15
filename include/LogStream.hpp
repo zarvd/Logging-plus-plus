@@ -22,6 +22,7 @@ public:
     }
     LogStream & operator<<(const std::string &);
     LogStream & operator<<(const char *);
+    LogStream & operator<<(char *);
 
 private:
     LogHandler & logHandler;

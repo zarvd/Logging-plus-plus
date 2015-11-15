@@ -22,4 +22,9 @@ LogStream & LogStream::operator<<(const char * msg) {
     logMsg += msg;
     return *this;
 }
+
+LogStream & LogStream::operator<<(char * msg) {
+    logMsg += msg;
+    return *this;
+}
 }
