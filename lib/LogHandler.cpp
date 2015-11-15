@@ -123,11 +123,6 @@ LogHandler::setMaxBufferSize(const unsigned size) {
     maxBufferSize = size;
 }
 
-bool
-LogHandler::isLevelAvailable(const Logger::Level & level) {
-    return level >= getHandler().logLevel;
-}
-
 /**
  * Log operation
  */
@@ -175,8 +170,9 @@ LogHandler::openLogStream() const {
                 dir = logDir.substr(0, idx); // get new directory path
             } else if(idx + 1 == logDir.length()) {
                 dir = logDir;
-            } else
+            } else {
                 continue;
+            }
 
             struct stat fileStat;
             if(stat(dir.c_str(), &fileStat) < 0) {
@@ -302,11 +298,5 @@ LogHandler::formatOutput(const Level & level, const std::string & msg,
     output.logMsg = buffer;
     output.color = color;
     return output;
-}
-
-LogHandler &
-LogHandler::getHandler() {
-    static LogHandler instance;
-    return instance;
 }
 }

@@ -34,9 +34,14 @@ public:
     void log(const Level &, const std::string & msg, const std::string & file,
              const std::string & func, const unsigned line);
     // other helpers
-    static bool isLevelAvailable(const Level &);
+    static bool isLevelAvailable(const Level & level) {
+        return level >= getHandler().logLevel;
+    }
     // return a static global log handler, singleton
-    static LogHandler & getHandler();
+    static LogHandler & getHandler() {
+        static LogHandler instance;
+        return instance;
+    }
 
 private:
     LogHandler();
