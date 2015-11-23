@@ -1,13 +1,13 @@
-#include "../include/Logger.hpp"
+#include "../include/logger.h"
 #include <functional>
 #include <iostream>
 
-using Logger::Level::TRACE;
-using Logger::Level::INFO;
-using Logger::Level::DEBUG;
-using Logger::Level::ERROR;
-using Logger::Level::WARN;
-auto & logger = Logger::LogHandler::getHandler();
+using logger::LogLevel::TRACE;
+using logger::LogLevel::INFO;
+using logger::LogLevel::DEBUG;
+using logger::LogLevel::ERROR;
+using logger::LogLevel::WARN;
+auto & logging= logger::LogHandler::GetHandler();
 
 using testFunc = std::function<void()>;
 
@@ -68,12 +68,12 @@ testLevel() {
 
 int
 main(void) {
-    // LoggingHandler.setOutput(Logger::Output::FILE, false);
-    logger.setOutput(Logger::LogHandler::Output::CONSOLE, false);
-    logger.setLogFile("multi.log");
+    // LoggingHandler.setOutput(logger::Output::FILE, false);
+    logging.set_output(logger::LogHandler::Output::CONSOLE, false);
+    logging.set_log_file("multi.log");
     // LoggingHandler.setLogFile("single.log");
-    logger.setLogLevel(TRACE);
-    logger.init();
+    logging.set_log_level(TRACE);
+    logging.Init();
     // testLevel();
     countRunTime("multi", &multiThreadTest);
     countRunTime("single", &singleThreadTest);
