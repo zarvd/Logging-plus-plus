@@ -152,7 +152,8 @@ void LogHandler::OpenLogStream() const {
   }
 
   // test log directory and create directory if neccesary
-  if (access(log_dir_.c_str(), F_OK) != 0 || access(log_dir_.c_str(), W_OK) != 0) {
+  if (access(log_dir_.c_str(), F_OK) != 0 ||
+      access(log_dir_.c_str(), W_OK) != 0) {
     std::string dir;
     for (std::size_t idx = 0; idx < log_dir_.length(); ++idx) {
       // create new directory recusively
@@ -203,7 +204,8 @@ void LogHandler::StartOutputThread() {
 
     {
       // get write buffer
-      std::unique_lock<std::mutex> logLck(log_mtx_);  // protect log_read_buffer_
+      std::unique_lock<std::mutex> logLck(
+          log_mtx_);  // protect log_read_buffer_
       while (log_write_buffer_.empty()) {
         log_cv_.wait_for(logLck, flush_frequency_);
         log_write_buffer_.swap(log_read_buffer_);
