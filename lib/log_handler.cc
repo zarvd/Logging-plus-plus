@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include "../include/log_handler.h"
+#include "helper.h"
 
 namespace logger {
 
