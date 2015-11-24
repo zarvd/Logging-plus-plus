@@ -27,16 +27,17 @@ $ INFO -> [test.cpp::main::71] Sun Sep 20 09:32:42 2015 >> Hello Gallon12.124300
 
 #### Example
 ```c++
-#include <logger/Logger.hpp>
+#include "../include/logger.h"
 
-auto & logger = Logger::LogHandler::getHandler();
-using Logger::Level::INFO;
-using Logger::Level::DEBUG;
-using Logger::Level::ERROR;
-using Logger::Level::WARN;
+using logger::LogLevel::TRACE;
+using logger::LogLevel::INFO;
+using logger::LogLevel::DEBUG;
+using logger::LogLevel::ERROR;
+using logger::LogLevel::WARN;
+auto & logging= logger::LogHandler::GetHandler();
 
 int main(void) {
-    logger.init();
-    Log(INFO) << "Hello " << 1 << 2.1243;  // c++ stream style
+  logging.Init();
+  Log(INFO) << "Hello " << 1 << 2.1243;  // c++ stream style
 }
 ```
